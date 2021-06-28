@@ -12,16 +12,16 @@ import { Vector } from "./Vector"
     let bodies: Body[] = []
 
     const positionalDamping = 0.25
-    const positionalIterations = 15
-    const velocityIterations = 10
-    const restitution = 0.85
+    const positionalIterations = 7
+    const velocityIterations = 7
+    const restitution = 0.8
     const gravity = 1000
 
     const timeStep = 1 / 120
 
     const offscreenMargin = 60
 
-    const cellSize = 80
+    const cellSize = 60
     let gridWidth = Math.ceil( canvas.width / cellSize )
     let gridHeight = Math.ceil( canvas.height / cellSize )
     type GridCell = Body[]
@@ -48,7 +48,7 @@ import { Vector } from "./Vector"
     }
 
     bodies.push( new Body( {
-        pos: new Vector( canvas.width / 2, canvas.height * 2 / 3 ),
+        pos: new Vector( canvas.width / 2, canvas.height / 2 ),
         radius: 80,
         color: "black",
         isStatic: true
@@ -68,6 +68,7 @@ import { Vector } from "./Vector"
 
     mainLoop()
     function mainLoop() {
+        clock.nextFrame()
         render()
         update()
         window.setTimeout( mainLoop, timeStep )
@@ -85,11 +86,9 @@ import { Vector } from "./Vector"
             c.fill()
         }
 
-        let dt = clock.getDt() / 1000
-        let fps = 1 / dt
         c.fillStyle = "red"
         c.font = "24px Impact"
-        c.fillText( fps.toFixed( 2 ), 0 + 2, 20 + 2 )
+        c.fillText( clock.averageFPS.toFixed( 2 ), 0 + 2, 20 + 2 )
     }
 
     function update() {
@@ -97,8 +96,8 @@ import { Vector } from "./Vector"
             if ( body.pos.x > canvas.width + offscreenMargin || body.pos.x < -offscreenMargin ) {
                 body.vel.x = ( Math.random() - .5 ) * 1000
                 body.vel.y = ( Math.random() - .25 ) * 1000
-                body.pos.x = canvas.width / 2 + ( Math.random() - .5 ) * 200
-                body.pos.y = canvas.height / 3 + ( Math.random() - .5 ) * 200
+                body.pos.x = canvas.width / 2 + ( Math.random() - .5 ) * 700
+                body.pos.y = canvas.height / 4 + ( Math.random() - .5 ) * 200
             }
             if ( !body.isStatic ) {
                 let { pos, vel } = body
@@ -233,26 +232,32 @@ import { Vector } from "./Vector"
             }
         }
 
+        let visitedPairs = new Set<number>()
+
         // Iterate over grid to generate pairs.
         for ( let i = 0; i < gridWidth; i++ ) {
             for ( let j = 0; j < gridHeight; j++ ) {
                 let cellIndex = i * gridHeight + j
-                for ( let bodyA of grid[ cellIndex ] ) {
-                    let u2 = clamp( 0, gridWidth - 1, i + 1 )
-                    let v2 = clamp( 0, gridHeight - 1, j + 1 )
-                    for ( let u = i; u <= u2; u++ ) {
-                        for ( let v = j; v <= v2; v++ ) {
-                            let cellIndex2 = u * gridHeight + v
-                            for ( let bodyB of grid[ cellIndex2 ] ) {
-                                if ( bodyB.id <= bodyA.id )
-                                    continue
-                                let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
-                                if ( penetration() < 0 )
-                                    continue
-                                let normal = bodyB.pos.subtract( bodyA.pos ).unit()
-                                pairs.push( { bodyA, bodyB, normal, penetration } )
-                            }
-                        }
+
+                let gridCell = grid[ cellIndex ]
+                for ( let iBodyA = 0; iBodyA < gridCell.length; iBodyA++ ) {
+                    let bodyA = gridCell[ iBodyA ]
+                    for ( let iBodyB = iBodyA + 1; iBodyB < gridCell.length; iBodyB++ ) {
+                        let bodyB = gridCell[ iBodyB ]
+
+                        let minId = Math.min( bodyA.id, bodyB.id )
+                        let maxId = Math.max( bodyA.id, bodyB.id )
+                        let pairKey = ( maxId << 16 ) | minId
+
+                        if ( visitedPairs.has( pairKey ) )
+                            continue
+                        visitedPairs.add( pairKey )
+
+                        let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
+                        if ( penetration() < 0 )
+                            continue
+                        let normal = bodyB.pos.subtract( bodyA.pos ).unit()
+                        pairs.push( { bodyA, bodyB, normal, penetration } )
                     }
                 }
 
