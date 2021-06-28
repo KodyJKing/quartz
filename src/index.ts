@@ -6,53 +6,40 @@ import { Vector } from "./Vector"
 {
     let canvas = initCanvas()
     let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
-
     let clock = new Clock()
-
     let bodies: Body[] = []
-
     const positionalDamping = 0.25
     const positionalIterations = 7
     const velocityIterations = 7
     const restitution = 0.8
     const gravity = 1000
-
     const timeStep = 1 / 120
-
     const offscreenMargin = 60
 
-    const cellSize = 60
-    let gridWidth = Math.ceil( canvas.width / cellSize )
-    let gridHeight = Math.ceil( canvas.height / cellSize )
-    type GridCell = Body[]
-    const grid: GridCell[] = []
-    for ( let i = 0; i < gridWidth * gridHeight; i++ )
-        grid.push( [] )
-
-
-    for ( let i = 0; i < 1000; i++ ) {
-        let pos = new Vector(
-            Math.random() * canvas.width,
-            Math.random() * canvas.height
-        )
-        let vel = new Vector(
-            ( Math.random() - .5 ) * 1000,
-            ( Math.random() - .5 ) * 1000
-        )
-        let radius = 12
-        // let radius = ( Math.random() * 10 + 20 ) * .5
-        // let radius = Math.random() < .5 ? 10 : 15
-        let color = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ][ Math.random() * 5 | 0 ]
-        let body = new Body( { pos, radius, vel, color } )
-        bodies.push( body )
+    { //  Generate bodies
+        for ( let i = 0; i < 1000; i++ ) {
+            let pos = new Vector(
+                Math.random() * canvas.width,
+                Math.random() * canvas.height
+            )
+            let vel = new Vector(
+                ( Math.random() - .5 ) * 1000,
+                ( Math.random() - .5 ) * 1000
+            )
+            let radius = 12
+            // let radius = ( Math.random() * 10 + 20 ) * .5
+            // let radius = Math.random() < .5 ? 10 : 15
+            let color = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ][ Math.random() * 5 | 0 ]
+            let body = new Body( { pos, radius, vel, color } )
+            bodies.push( body )
+        }
+        bodies.push( new Body( {
+            pos: new Vector( canvas.width / 2, canvas.height / 2 ),
+            radius: 80,
+            color: "black",
+            isStatic: true
+        } ) )
     }
-
-    bodies.push( new Body( {
-        pos: new Vector( canvas.width / 2, canvas.height / 2 ),
-        radius: 80,
-        color: "black",
-        isStatic: true
-    } ) )
 
     function initCanvas() {
         let canvas = document.getElementById( "mainCanvas" ) as HTMLCanvasElement
@@ -213,8 +200,13 @@ import { Vector } from "./Vector"
     }
 
     function generatePairCollisions( pairs: Collision[], bodies: Body[], box: { pos: Vector, size: Vector } ) {
-        for ( let cell of grid )
-            cell.length = 0
+        const cellSize = 60
+        let gridWidth = Math.ceil( canvas.width / cellSize )
+        let gridHeight = Math.ceil( canvas.height / cellSize )
+        type GridCell = Body[]
+        const grid: GridCell[] = []
+        for ( let i = 0; i < gridWidth * gridHeight; i++ )
+            grid.push( [] )
 
         // Place bodies in grid.
         for ( let body of bodies ) {
