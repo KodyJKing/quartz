@@ -107,8 +107,7 @@ import { Vector } from "./Vector"
             let { bodyA, bodyB, normal, penetration } = pair
 
             let _penetration = penetration()
-            if ( _penetration < 0 )
-                continue
+            if ( _penetration < 0 ) continue
 
             let massA = bodyA?.mass ?? 1e+32
             let massB = bodyB?.mass ?? 1e+32
@@ -135,8 +134,7 @@ import { Vector } from "./Vector"
             let { bodyA, bodyB, normal, penetration } = pair
 
             let _penetration = penetration()
-            if ( _penetration < 0 )
-                continue
+            if ( _penetration < 0 ) continue
 
             let massA = bodyA?.mass ?? 1e+32
             let massB = bodyB?.mass ?? 1e+32
@@ -155,8 +153,7 @@ import { Vector } from "./Vector"
             let cmVelNormal = cmVel.dot( normal )
             let momentumANormal = velA.dot( normal ) * massA
             let impulse = ( cmVelNormal * massA - momentumANormal ) * ( 1 + restitution )
-            if ( impulse > 0 )
-                continue
+            if ( impulse > 0 ) continue
 
             if ( bodyA ) {
                 bodyA.vel.x += normal.x * impulse / massA
@@ -185,8 +182,7 @@ import { Vector } from "./Vector"
             let body = bodies[ i ]
             for ( let wall of walls ) {
                 let penetration = () => body.pos.dot( wall.normal ) - wall.distance + body.radius
-                if ( penetration() < -10 )
-                    continue
+                if ( penetration() < 0 ) continue
                 result.push( {
                     bodyA: body,
                     normal: wall.normal,
@@ -212,6 +208,9 @@ import { Vector } from "./Vector"
         for ( let body of bodies ) {
             let { pos, radius: r } = body
             let { x, y } = pos
+            // This is slightly incorrect since it will place bodies outside the grid on the boundary of the grid.
+            // However this has the benefit of ensuring all bodies will be covered by collision detection.
+            // TODO: Come up with a cleaner solution. Maybe implement chunks and generate chunks adaptively rather than going off of screen dimensions.
             let i1 = clamp( 0, gridWidth - 1, Math.floor( ( x - r ) / cellSize ) )
             let i2 = clamp( 0, gridWidth - 1, Math.floor( ( x + r ) / cellSize ) )
             let j1 = clamp( 0, gridHeight - 1, Math.floor( ( y - r ) / cellSize ) )
@@ -241,13 +240,12 @@ import { Vector } from "./Vector"
                         let maxId = Math.max( bodyA.id, bodyB.id )
                         let pairKey = ( maxId << 16 ) | minId
 
-                        if ( visitedPairs.has( pairKey ) )
-                            continue
+                        if ( visitedPairs.has( pairKey ) ) continue
                         visitedPairs.add( pairKey )
 
                         let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
-                        if ( penetration() < 0 )
-                            continue
+                        if ( penetration() < 0 ) continue
+
                         let normal = bodyB.pos.subtract( bodyA.pos ).unit()
                         pairs.push( { bodyA, bodyB, normal, penetration } )
                     }
