@@ -15,6 +15,7 @@ import { Vector } from "./Vector"
     const gravity = 1000
     const timeStep = 1 / 120
     const offscreenMargin = 60
+    const gridCellSize = 20
 
     { //  Generate bodies
         for ( let i = 0; i < 1000; i++ ) {
@@ -35,7 +36,7 @@ import { Vector } from "./Vector"
         }
         bodies.push( new Body( {
             pos: new Vector( canvas.width / 2, canvas.height / 2 ),
-            radius: 80,
+            radius: 100,
             color: "black",
             isStatic: true
         } ) )
@@ -81,10 +82,10 @@ import { Vector } from "./Vector"
     function update() {
         for ( let body of bodies ) {
             if ( body.pos.x > canvas.width + offscreenMargin || body.pos.x < -offscreenMargin ) {
-                body.vel.x = ( Math.random() - .5 ) * 1000
-                body.vel.y = ( Math.random() - .25 ) * 1000
-                body.pos.x = canvas.width / 2 + ( Math.random() - .5 ) * 700
-                body.pos.y = canvas.height / 4 + ( Math.random() - .5 ) * 200
+                body.vel.x = ( Math.random() - .5 ) * 100
+                body.vel.y = ( Math.random() - .25 ) * 100
+                body.pos.x = canvas.width / 2 + ( Math.random() - .5 ) * 500
+                body.pos.y = -20 //canvas.height / 8 + ( Math.random() - .5 ) * 500
             }
             if ( !body.isStatic ) {
                 let { pos, vel } = body
@@ -172,7 +173,7 @@ import { Vector } from "./Vector"
     type Collision = { bodyA: Body, bodyB?: Body, normal: Vector, penetration: () => number }
     function generateCollisions() {
         const walls = [
-            { normal: new Vector( 0, -1 ), distance: 0 },
+            // { normal: new Vector( 0, -1 ), distance: 0 },
             { normal: new Vector( 0, 1 ), distance: canvas.height },
             { normal: new Vector( -1, 0 ), distance: offscreenMargin * 2 },
             { normal: new Vector( 1, 0 ), distance: canvas.width + offscreenMargin * 2 },
@@ -194,13 +195,12 @@ import { Vector } from "./Vector"
             }
         }
 
-        generatePairCollisions( result, bodies, { pos: new Vector( 0, 0 ), size: new Vector( canvas.width, canvas.height ) } )
+        generatePairCollisions( result, bodies, { pos: new Vector( 0, 0 ), size: new Vector( canvas.width, canvas.height ) }, gridCellSize )
 
         return result
     }
 
-    function generatePairCollisions( pairs: Collision[], bodies: Body[], box: { pos: Vector, size: Vector } ) {
-        const cellSize = 60
+    function generatePairCollisions( pairs: Collision[], bodies: Body[], box: { pos: Vector, size: Vector }, cellSize: number ) {
         let gridWidth = Math.ceil( canvas.width / cellSize )
         let gridHeight = Math.ceil( canvas.height / cellSize )
         type GridCell = Body[]
