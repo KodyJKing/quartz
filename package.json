@@ -1,0 +1,15 @@
+{
+    "name": "physonks",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "watch": "parcel src/index.html"
+    },
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "parcel-bundler": "^1.12.5",
+        "typescript": "4.2.4"
+    }
+}
