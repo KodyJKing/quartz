@@ -7,21 +7,16 @@ export default class Body {
     mass: number
     color: string
     id: number
+    isStatic: boolean = false
     static idCounter = 0
-    constructor( pos: Vector, radius: number, vel = new Vector( 0, 0 ), color = "red" ) {
-        this.pos = pos
-        this.radius = radius
-        this.vel = vel
-        this.mass = 1
-        this.color = color
+    constructor( args: { pos: Vector, radius: number, mass?: number, vel?: Vector, color?: string, isStatic?: boolean } ) {
+        this.pos = args.pos
+        this.radius = args.radius
+        this.vel = args.vel ?? new Vector( 0, 0 )
+        this.isStatic = args.isStatic ?? false
+        this.mass = this.isStatic ? 1e+32 : ( args.mass ?? this.radius ** 2 )
+        this.color = args.color ?? "red"
         this.id = Body.idCounter++
         // this.color = "#" + ( ( Math.random() * 16 ** 6 ) | 0 ).toString( 16 ).padStart( 6, "0" )
-    }
-    healthCheck() {
-        if (
-            isNaN( this.vel.x ) || isNaN( this.vel.y ) ||
-            isNaN( this.pos.x ) || isNaN( this.pos.y )
-        )
-            debugger
     }
 }

@@ -15,7 +15,7 @@ import { Vector } from "./Vector"
     const positionalIterations = 15
     const velocityIterations = 10
     const restitution = 0.85
-    const gravity = 500
+    const gravity = 1000
 
     const timeStep = 1 / 120
 
@@ -24,7 +24,6 @@ import { Vector } from "./Vector"
     const cellSize = 80
     let gridWidth = Math.ceil( canvas.width / cellSize )
     let gridHeight = Math.ceil( canvas.height / cellSize )
-    console.log( { gridWidth, gridHeight } )
     type GridCell = Body[]
     const grid: GridCell[] = []
     for ( let i = 0; i < gridWidth * gridHeight; i++ )
@@ -40,13 +39,20 @@ import { Vector } from "./Vector"
             ( Math.random() - .5 ) * 1000,
             ( Math.random() - .5 ) * 1000
         )
-        // let radius = 20
-        let radius = ( Math.random() * 20 + 10 ) * .5
-        // let radius = Math.random() < .5 ? 10 : 20
+        let radius = 12
+        // let radius = ( Math.random() * 10 + 20 ) * .5
+        // let radius = Math.random() < .5 ? 10 : 15
         let color = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ][ Math.random() * 5 | 0 ]
-        let body = new Body( pos, radius, vel, color )
+        let body = new Body( { pos, radius, vel, color } )
         bodies.push( body )
     }
+
+    bodies.push( new Body( {
+        pos: new Vector( canvas.width / 2, canvas.height * 2 / 3 ),
+        radius: 80,
+        color: "black",
+        isStatic: true
+    } ) )
 
     function initCanvas() {
         let canvas = document.getElementById( "mainCanvas" ) as HTMLCanvasElement
@@ -94,14 +100,12 @@ import { Vector } from "./Vector"
                 body.pos.x = canvas.width / 2 + ( Math.random() - .5 ) * 200
                 body.pos.y = canvas.height / 3 + ( Math.random() - .5 ) * 200
             }
-
-            let { pos, vel } = body
-            vel.y += timeStep * gravity
-            pos.x += vel.x * timeStep
-            pos.y += vel.y * timeStep
-
-            // body.healthCheck()
-            // body.radius = 20 + 5 * Math.sin( performance.now() / 1000 )
+            if ( !body.isStatic ) {
+                let { pos, vel } = body
+                vel.y += timeStep * gravity
+                pos.x += vel.x * timeStep
+                pos.y += vel.y * timeStep
+            }
         }
 
         let pairs = generateCollisions()
@@ -130,13 +134,11 @@ import { Vector } from "./Vector"
             if ( bodyA ) {
                 bodyA.pos.x -= normal.x * displacementA
                 bodyA.pos.y -= normal.y * displacementA
-                // bodyA.healthCheck()
             }
 
             if ( bodyB ) {
                 bodyB.pos.x += normal.x * displacementB
                 bodyB.pos.y += normal.y * displacementB
-                // bodyB.healthCheck()
             }
         }
     }
@@ -169,19 +171,14 @@ import { Vector } from "./Vector"
             if ( impulse > 0 )
                 continue
 
-            // let snapshot = JSON.stringify( { normal, velA, velB, cmVel, cmVelNormal, momentumANormal, impulse }, null, 2 )
-            // console.log( snapshot )
-
             if ( bodyA ) {
                 bodyA.vel.x += normal.x * impulse / massA
                 bodyA.vel.y += normal.y * impulse / massA
-                // bodyA.healthCheck()
             }
 
             if ( bodyB ) {
                 bodyB.vel.x -= normal.x * impulse / massB
                 bodyB.vel.y -= normal.y * impulse / massB
-                // bodyB.healthCheck()
             }
         }
     }
@@ -198,28 +195,17 @@ import { Vector } from "./Vector"
         let result: Collision[] = []
 
         for ( let i = 0; i < bodies.length; i++ ) {
-            let bodyA = bodies[ i ]
+            let body = bodies[ i ]
             for ( let wall of walls ) {
-                let penetration = () => bodyA.pos.dot( wall.normal ) - wall.distance + bodyA.radius
+                let penetration = () => body.pos.dot( wall.normal ) - wall.distance + body.radius
                 if ( penetration() < -10 )
                     continue
                 result.push( {
-                    bodyA,
+                    bodyA: body,
                     normal: wall.normal,
                     penetration
                 } )
             }
-
-            // for ( let j = i + 1; j < bodies.length; j++ ) {
-            //     let bodyB = bodies[ j ]
-            //     if ( bodyB == bodyA )
-            //         continue
-            //     let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
-            //     if ( penetration() < 0 )
-            //         continue
-            //     let normal = bodyB.pos.subtract( bodyA.pos ).unit()
-            //     result.push( { bodyA, bodyB, normal, penetration } )
-            // }
         }
 
         generatePairCollisions( result, bodies, { pos: new Vector( 0, 0 ), size: new Vector( canvas.width, canvas.height ) } )
