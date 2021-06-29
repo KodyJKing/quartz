@@ -2,6 +2,7 @@ import Body from "./Body"
 import Clock from "./Clock"
 import Input from "./Input"
 import { clamp } from "./math"
+import { setup1, setup2 } from "./setups"
 import { Vector } from "./Vector"
 
 {
@@ -20,30 +21,8 @@ import { Vector } from "./Vector"
     const offscreenMargin = 60
     const gridCellSize = 20
 
-    { //  Generate bodies
-        for ( let i = 0; i < 1000; i++ ) {
-            let pos = new Vector(
-                Math.random() * canvas.width,
-                Math.random() * canvas.height
-            )
-            let vel = new Vector(
-                ( Math.random() - .5 ) * 1000,
-                ( Math.random() - .5 ) * 1000
-            )
-            let radius = 12
-            // let radius = ( Math.random() * 10 + 20 ) * .5
-            // let radius = Math.random() < .5 ? 10 : 15
-            let color = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ][ Math.random() * 5 | 0 ]
-            let body = new Body( { pos, radius, vel, color } )
-            bodies.push( body )
-        }
-        bodies.push( new Body( {
-            pos: new Vector( canvas.width / 2, canvas.height / 2 ),
-            radius: 100,
-            color: "#d1ccb6",
-            isStatic: true
-        } ) )
-    }
+    // setup1( canvas, bodies )
+    setup2( canvas, bodies )
 
     function initCanvas() {
         let canvas = document.getElementById( "mainCanvas" ) as HTMLCanvasElement
@@ -129,12 +108,12 @@ import { Vector } from "./Vector"
             let displacementB = displacement / ( 1 + massRatio )
             let displacementA = displacement - displacementB
 
-            if ( bodyA ) {
+            if ( bodyA && !bodyA.isStatic ) {
                 bodyA.pos.x -= normal.x * displacementA
                 bodyA.pos.y -= normal.y * displacementA
             }
 
-            if ( bodyB ) {
+            if ( bodyB && !bodyA.isStatic ) {
                 bodyB.pos.x += normal.x * displacementB
                 bodyB.pos.y += normal.y * displacementB
             }
@@ -167,12 +146,12 @@ import { Vector } from "./Vector"
             let impulse = ( cmVelNormal * massA - momentumANormal ) * ( 1 + restitution )
             if ( impulse > 0 ) continue
 
-            if ( bodyA ) {
+            if ( bodyA && !bodyA.isStatic ) {
                 bodyA.vel.x += normal.x * impulse / massA
                 bodyA.vel.y += normal.y * impulse / massA
             }
 
-            if ( bodyB ) {
+            if ( bodyB && !bodyA.isStatic ) {
                 bodyB.vel.x -= normal.x * impulse / massB
                 bodyB.vel.y -= normal.y * impulse / massB
             }
