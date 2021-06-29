@@ -1,11 +1,13 @@
 import Body from "./Body"
 import Clock from "./Clock"
+import Input from "./Input"
 import { clamp } from "./math"
 import { Vector } from "./Vector"
 
 {
     let canvas = initCanvas()
     let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
+    let input = new Input()
     let clock = new Clock()
     let bodies: Body[] = []
     const positionalDamping = 0.25
@@ -14,6 +16,7 @@ import { Vector } from "./Vector"
     const restitution = 0.8
     const gravity = 1000
     const timeStep = 1 / 120
+    const updatesPerFrame = 1
     const offscreenMargin = 60
     const gridCellSize = 20
 
@@ -37,7 +40,7 @@ import { Vector } from "./Vector"
         bodies.push( new Body( {
             pos: new Vector( canvas.width / 2, canvas.height / 2 ),
             radius: 100,
-            color: "black",
+            color: "#d1ccb6",
             isStatic: true
         } ) )
     }
@@ -58,12 +61,13 @@ import { Vector } from "./Vector"
     function mainLoop() {
         clock.nextFrame()
         render()
-        update()
-        window.setTimeout( mainLoop, timeStep )
+        for ( let i = 0; i < updatesPerFrame; i++ )
+            update()
+        window.setTimeout( mainLoop, timeStep * updatesPerFrame )
     }
 
     function render() {
-        c.fillStyle = "white"
+        c.fillStyle = "#ebe6d1"
         c.fillRect( 0, 0, canvas.width, canvas.height )
 
         for ( let body of bodies ) {
@@ -89,7 +93,15 @@ import { Vector } from "./Vector"
             }
             if ( !body.isStatic ) {
                 let { pos, vel } = body
-                vel.y += timeStep * gravity
+                if ( !input.mouse.get( 2 ) )
+                    vel.y += timeStep * gravity
+                if ( input.mouse.get( 0 ) ) {
+                    let diff = input.cursor.subtract( pos )
+                    let length = Math.max( diff.length, 50 )
+                    diff = diff.scale( -50000000 / length ** 3 )
+                    vel.x += timeStep * diff.x
+                    vel.y += timeStep * diff.y
+                }
                 pos.x += vel.x * timeStep
                 pos.y += vel.y * timeStep
             }
@@ -174,6 +186,8 @@ import { Vector } from "./Vector"
             { normal: new Vector( 0, 1 ), distance: canvas.height },
             { normal: new Vector( -1, 0 ), distance: offscreenMargin * 2 },
             { normal: new Vector( 1, 0 ), distance: canvas.width + offscreenMargin * 2 },
+            // { normal: new Vector( -1, 0 ), distance: 0 },
+            // { normal: new Vector( 1, 0 ), distance: canvas.width },
         ]
 
         let result: Collision[] = []
