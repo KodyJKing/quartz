@@ -1,6 +1,6 @@
-import { Vector } from "../Vector"
+import { Vector } from "../math/Vector"
 import SupportFunction from "./SupportFunction"
-import { modulus } from "../math"
+import { modulus } from "../math/math"
 
 export default function SAT( polyA: Vector[], polyB: Vector[] ) {
     let maxNormal = Vector.zero

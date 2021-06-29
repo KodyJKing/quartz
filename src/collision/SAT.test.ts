@@ -1,6 +1,6 @@
 
 import test from "ava"
-import { Vector } from "../Vector"
+import { Vector } from "../math/Vector"
 import SAT, { polySupport } from "./SAT"
 
 test( "SAT", t => {
