@@ -59,3 +59,7 @@ export function clamp( min: number, max: number, x: number ) {
 export function lerp( start: number, end: number, alpha: number ) {
     return ( end - start ) * alpha + start
 }
+
+export function modulus( quotient: number, divisor: number ) {
+    return ( ( quotient % divisor ) + divisor ) % divisor
+}

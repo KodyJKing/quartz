@@ -4,7 +4,7 @@
     ],
     "compilerOptions": {
         "target": "ESNext",
-        "module": "commonjs",
+        "module": "CommonJS",
         "declaration": true,
         "outDir": "lib",
         "rootDir": "src",
@@ -14,7 +14,6 @@
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
         "esModuleInterop": true,
-        "preserveWatchOutput": true,
-        "resolveJsonModule": true
+        "preserveWatchOutput": true
     }
 }
