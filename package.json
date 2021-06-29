@@ -4,12 +4,14 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "watch": "parcel src/index.html"
+        "watch": "parcel src/index.html",
+        "push-gh-page": "push-dir --dir=dist --branch=gg-pages --cleanup --verbose"
     },
     "author": "",
     "license": "MIT",
     "devDependencies": {
         "parcel-bundler": "^1.12.5",
-        "typescript": "4.2.4"
+        "typescript": "4.2.4",
+        "push-dir": "^0.4.1"
     }
 }
