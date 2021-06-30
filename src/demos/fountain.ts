@@ -167,17 +167,11 @@ function solveVelocities( pairs: Collision[] ) {
         let velA = bodyA.vel ?? new Vector( 0, 0 )
         let velB = bodyB?.vel ?? new Vector( 0, 0 )
 
-        let netMass = massA + massB
-        let px = velA.x * massA + velB.x * massB
-        let py = velA.y * massA + velB.y * massB
-        let cmVel = new Vector(
-            px / netMass,
-            py / netMass,
-        )
+        // See impulse formula here https://www.randygaul.net/2013/03/27/game-physics-engine-part-1-impulse-resolution/
+        let combinedEffectiveMass = 1 / (1 / massA + 1 / massB)
+        let velBA = velB.subtract(velA)
+        let impulse = velBA.dot(normal) * ( 1 + restitution ) * combinedEffectiveMass
 
-        let cmVelNormal = cmVel.dot( normal )
-        let momentumANormal = velA.dot( normal ) * massA
-        let impulse = ( cmVelNormal * massA - momentumANormal ) * ( 1 + restitution )
         if ( impulse > 0 ) continue
 
         if ( bodyA && !bodyA.isStatic ) {
@@ -197,8 +191,6 @@ function generateCollisions() {
     const walls = [
         // { normal: new Vector( 0, -1 ), distance: 0 },
         { normal: new Vector( 0, 1 ), distance: canvas.height },
-        // { normal: new Vector( -1, 0 ), distance: offscreenMargin * 2 },
-        // { normal: new Vector( 1, 0 ), distance: canvas.width + offscreenMargin * 2 },
         // { normal: new Vector( -1, 0 ), distance: 0 },
         // { normal: new Vector( 1, 0 ), distance: canvas.width },
     ]
