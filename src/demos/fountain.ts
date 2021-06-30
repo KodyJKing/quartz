@@ -20,6 +20,8 @@ const updatesPerFrame = 1
 const offscreenMargin = 60
 const gridCellSize = 20
 
+const staticBodyMass = 1e+32
+
 const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
 const staticCircleColor = "#d1ccb6"
 
@@ -133,8 +135,8 @@ function solvePositions( pairs: Collision[] ) {
         let _penetration = penetration()
         if ( _penetration < 0 ) continue
 
-        let massA = bodyA?.mass ?? 1e+32
-        let massB = bodyB?.mass ?? 1e+32
+        let massA = bodyA?.mass ?? staticBodyMass
+        let massB = bodyB?.mass ?? staticBodyMass
 
         let displacement = _penetration * positionalDamping
         let massRatio = massB / massA
@@ -146,7 +148,7 @@ function solvePositions( pairs: Collision[] ) {
             bodyA.pos.y -= normal.y * displacementA
         }
 
-        if ( bodyB && !bodyA.isStatic ) {
+        if ( bodyB && !bodyB.isStatic ) {
             bodyB.pos.x += normal.x * displacementB
             bodyB.pos.y += normal.y * displacementB
         }
@@ -160,11 +162,10 @@ function solveVelocities( pairs: Collision[] ) {
         let _penetration = penetration()
         if ( _penetration < 0 ) continue
 
-        let massA = bodyA?.mass ?? 1e+32
-        let massB = bodyB?.mass ?? 1e+32
+        let massA = bodyA?.mass ?? staticBodyMass
+        let massB = bodyB?.mass ?? staticBodyMass
         let velA = bodyA.vel ?? new Vector( 0, 0 )
         let velB = bodyB?.vel ?? new Vector( 0, 0 )
-
 
         let netMass = massA + massB
         let px = velA.x * massA + velB.x * massB
@@ -184,7 +185,7 @@ function solveVelocities( pairs: Collision[] ) {
             bodyA.vel.y += normal.y * impulse / massA
         }
 
-        if ( bodyB && !bodyA.isStatic ) {
+        if ( bodyB && !bodyB.isStatic ) {
             bodyB.vel.x -= normal.x * impulse / massB
             bodyB.vel.y -= normal.y * impulse / massB
         }
@@ -196,8 +197,8 @@ function generateCollisions() {
     const walls = [
         // { normal: new Vector( 0, -1 ), distance: 0 },
         { normal: new Vector( 0, 1 ), distance: canvas.height },
-        { normal: new Vector( -1, 0 ), distance: offscreenMargin * 2 },
-        { normal: new Vector( 1, 0 ), distance: canvas.width + offscreenMargin * 2 },
+        // { normal: new Vector( -1, 0 ), distance: offscreenMargin * 2 },
+        // { normal: new Vector( 1, 0 ), distance: canvas.width + offscreenMargin * 2 },
         // { normal: new Vector( -1, 0 ), distance: 0 },
         // { normal: new Vector( 1, 0 ), distance: canvas.width },
     ]
@@ -262,15 +263,15 @@ function generatePairCollisions( pairs: Collision[], bodies: Body[], box: { pos:
                 for ( let iBodyB = iBodyA + 1; iBodyB < gridCell.length; iBodyB++ ) {
                     let bodyB = gridCell[ iBodyB ]
 
+                    let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
+                    if ( penetration() < 0 ) continue
+
                     let minId = Math.min( bodyA.id, bodyB.id )
                     let maxId = Math.max( bodyA.id, bodyB.id )
                     let pairKey = ( maxId << 16 ) | minId
 
                     if ( visitedPairs.has( pairKey ) ) continue
                     visitedPairs.add( pairKey )
-
-                    let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
-                    if ( penetration() < 0 ) continue
 
                     let normal = bodyB.pos.subtract( bodyA.pos ).unit()
                     pairs.push( { bodyA, bodyB, normal, penetration } )

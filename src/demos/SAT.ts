@@ -13,11 +13,16 @@ let clock = new Clock()
 
 const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
 
+let paused = false
+window.addEventListener( "keypress", ev => { if ( ev.key == " " ) paused = !paused } )
+
 mainLoop()
 function mainLoop() {
     clock.nextFrame()
-    render()
-    update()
+    if ( !paused ) {
+        render()
+        update()
+    }
     window.requestAnimationFrame( mainLoop )
 }
 
@@ -49,8 +54,14 @@ function render() {
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     let { x, y } = input.cursor
-    let matA = Matrix.transformation( 0, 0, Math.PI / 4, 1, 1, x, y )
-    // let matA = Matrix.transformation( 0, 0, Math.PI / 4, 1, 1, 500, 500 )
+    // let matA = Matrix.transformation( 0, 0, Math.PI / 4, 1, 1, x, y )
+    let matA = [
+        Matrix.translation( 500, 500 ),
+        Matrix.rotation( performance.now() / 1000 ),
+        Matrix.translation( 200, 0 ),
+        Matrix.rotation( performance.now() / 1100 ),
+        Matrix.scale( 2, 1 )
+    ].reduce( ( a, b ) => a.multiply( b ) )
     let polyA = [
         new Vector( -100, -100 ),
         new Vector( 100, -100 ),
@@ -58,7 +69,7 @@ function render() {
         new Vector( -100, 100 ),
     ].map( v => matA.multiplyVec( v ) )
 
-    let matB = Matrix.transformation( 0, 0, 0, 50, 50, 700, 500 )
+    let matB = Matrix.transformation( 0, 0, 0, 50, 50, 500, 500 )
     // let polyB = [
     //     new Vector( -100, -100 ),
     //     new Vector( 100, -100 ),
@@ -74,7 +85,7 @@ function render() {
         c.globalAlpha = .5
 
     polyPath( polyA )
-    c.fillStyle = colorPalette[ 2 ]
+    c.fillStyle = colorPalette[ 3 ]
     c.fill()
 
     polyPath( polyB )
@@ -85,8 +96,8 @@ function render() {
 
     for ( let v of [ a.high, a.low, b.high, b.low ] ) {
         c.beginPath()
-        c.arc( v.x, v.y, 2, 0, Math.PI * 2 )
-        c.fillStyle = colorPalette[ 0 ]
+        c.arc( v.x, v.y, 4, 0, Math.PI * 2 )
+        c.fillStyle = colorPalette[ 1 ]
         c.fill()
     }
 

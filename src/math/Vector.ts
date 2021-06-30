@@ -11,7 +11,7 @@ export class Vector {
         this.x = x
         this.y = y
     }
-    get length() { return Math.sqrt( this.x * this.x + this.y * this.y ) }
+    get length() { return Math.sqrt( this.x ** 2 + this.y ** 2 ) }
     get lengthSquared() { return this.x * this.x + this.y * this.y }
     get angle() { return Math.atan2( this.y, this.x ) }
 
@@ -36,7 +36,7 @@ export class Vector {
     divide( divisor: number ) { return new Vector( this.x / divisor, this.y / divisor ) }
     lerp( other: Vector, t: number ) { return this.scale( 1 - t ).add( other.scale( t ) ) }
 
-    distance( other: Vector ) { return Math.hypot( this.x - other.x, this.y - other.y ) }
+    distance( other: Vector ) { return Math.sqrt( ( this.x - other.x ) ** 2 + ( this.y - other.y ) ** 2 ) }
 
     rotated( angle: number ) {
         return this.complexProduct( Vector.polar( angle, 1 ) )
