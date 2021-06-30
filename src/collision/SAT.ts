@@ -2,7 +2,8 @@ import { Vector } from "../math/Vector"
 import SupportFunction from "./SupportFunction"
 import { modulus } from "../math/math"
 
-export default function SAT( polyA: Vector[], polyB: Vector[] ) {
+export type CollisionInfo = { normal: Vector, separation: number, contact: Vector[] }
+export default function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
     let maxNormal = Vector.zero
     let maxDist = -Infinity
     function maxSeperationAxisSingle( poly: Vector[], otherSupport: SupportFunction, sign: number ) {
@@ -20,24 +21,35 @@ export default function SAT( polyA: Vector[], polyB: Vector[] ) {
     maxSeperationAxisSingle( polyA, supportB, -1 )
     maxSeperationAxisSingle( polyB, supportA, 1 )
 
-    let epsilon = 0.1
+    let epsilon = 0.01
     let rotator = Vector.polar( epsilon, 1 )
     let normalHigh = maxNormal.complexProduct( rotator )
     let normalLow = maxNormal.complexQuotient( rotator )
 
+    let aUpper = supportA( normalLow )
+    let aLower = supportA( normalHigh )
+    let bUpper = supportB(normalHigh.negate() )
+    let bLower = supportB(normalLow.negate() )
+
+    let tangent = maxNormal.rightNormal()
+    let upperExtent = Math.min(aUpper.dot(tangent), bUpper.dot(tangent))
+    let lowerExtent = Math.max(aLower.dot(tangent), bLower.dot(tangent))
+
+    let aUpperContact = aUpper.clampAlongAxis(tangent, lowerExtent, upperExtent)
+    let aLowerContact = aLower.clampAlongAxis(tangent, lowerExtent, upperExtent)
+    let bUpperContact = bUpper.clampAlongAxis(tangent, lowerExtent, upperExtent)
+    let bLowerContact = bLower.clampAlongAxis(tangent, lowerExtent, upperExtent)
+
+    let upperContact = aUpperContact.lerp(bUpperContact, .5)
+    let lowerContact = aLowerContact.lerp(bLowerContact, .5)
+
+    let contacts = (upperExtent - lowerExtent) < 1 ? [upperContact] : [upperContact, lowerContact]
+    // let contacts = [upperContact.lerp(lowerContact, .5)]
+
     return {
         normal: maxNormal,
         separation: maxDist,
-        contact: {
-            a: {
-                high: supportA( normalHigh ),
-                low: supportA( normalLow ),
-            },
-            b: {
-                high: supportB( normalHigh.negate() ),
-                low: supportB( normalLow.negate() ),
-            }
-        }
+        contact: contacts
     }
 }
 

@@ -1,9 +1,29 @@
-import Body from "../Body"
 import Clock from "../Clock"
+import { initCanvas, notQuiteInfiniteMass } from "../common"
 import Input from "../Input"
 import { clamp } from "../math/math"
 import { Vector } from "../math/Vector"
-import initCanvas from "./initCanvas"
+
+class Body {
+    pos: Vector
+    vel: Vector
+    radius: number
+    mass: number
+    color: string
+    id: number
+    isStatic: boolean = false
+    static idCounter = 0
+    constructor( args: { pos: Vector, radius: number, mass?: number, vel?: Vector, color?: string, isStatic?: boolean } ) {
+        this.pos = args.pos
+        this.radius = args.radius
+        this.vel = args.vel ?? new Vector( 0, 0 )
+        this.isStatic = args.isStatic ?? false
+        this.mass = this.isStatic ? 1e+32 : ( args.mass ?? this.radius ** 2 )
+        this.color = args.color ?? "red"
+        this.id = Body.idCounter++
+        // this.color = "#" + ( ( Math.random() * 16 ** 6 ) | 0 ).toString( 16 ).padStart( 6, "0" )
+    }
+}
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -19,8 +39,6 @@ const timeStep = 1 / 120
 const updatesPerFrame = 1
 const offscreenMargin = 60
 const gridCellSize = 20
-
-const staticBodyMass = 1e+32
 
 const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
 const staticCircleColor = "#d1ccb6"
@@ -135,8 +153,8 @@ function solvePositions( pairs: Collision[] ) {
         let _penetration = penetration()
         if ( _penetration < 0 ) continue
 
-        let massA = bodyA?.mass ?? staticBodyMass
-        let massB = bodyB?.mass ?? staticBodyMass
+        let massA = bodyA?.mass ?? notQuiteInfiniteMass
+        let massB = bodyB?.mass ?? notQuiteInfiniteMass
 
         let displacement = _penetration * positionalDamping
         let massRatio = massB / massA
@@ -162,8 +180,8 @@ function solveVelocities( pairs: Collision[] ) {
         let _penetration = penetration()
         if ( _penetration < 0 ) continue
 
-        let massA = bodyA?.mass ?? staticBodyMass
-        let massB = bodyB?.mass ?? staticBodyMass
+        let massA = bodyA?.mass ?? notQuiteInfiniteMass
+        let massB = bodyB?.mass ?? notQuiteInfiniteMass
         let velA = bodyA.vel ?? new Vector( 0, 0 )
         let velB = bodyB?.vel ?? new Vector( 0, 0 )
 
