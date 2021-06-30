@@ -8,7 +8,8 @@ export default function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
     let maxDist = -Infinity
     function maxSeperationAxisSingle( poly: Vector[], otherSupport: SupportFunction, sign: number ) {
         for ( let i = 0; i < poly.length; i++ ) {
-            let j = ( i + 1 ) % poly.length
+            i = modulus( i,  poly.length )
+            let j = modulus( i + 1,  poly.length )
             let pt_i = poly[ i ], pt_j = poly[ j ]
             let normal = pt_j.subtract( pt_i ).leftNormal().unit() // Inward normal
             let dist = pt_i.dot( normal ) - otherSupport( normal ).dot( normal )

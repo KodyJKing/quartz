@@ -1,10 +1,12 @@
 import { notQuiteInfiniteMass } from "../../common"
+import AABB from "../../math/AABB"
 import Matrix from "../../math/Matrix"
 import { Vector } from "../../math/Vector"
 
 export default class Body {
     model: Vector[]
     vertices: Vector[]
+    bounds: AABB
     position: Vector
     velocity: Vector
     angle: number
@@ -13,6 +15,9 @@ export default class Body {
     inertia: number
     isStatic: boolean
     color: string
+    id: number
+    // positionalCorrection: Vector
+    static idCounter = 0
     constructor(args: { 
         model: Vector[], 
         position: Vector, velocity?: Vector, 
@@ -30,7 +35,14 @@ export default class Body {
         this.mass = this.isStatic ? notQuiteInfiniteMass : (args.mass ?? 1)
         this.inertia = this.isStatic ? notQuiteInfiniteMass : (args.inertia ?? 1)
         this.vertices = this.transformedVertices()
+        this.bounds = AABB.polygonBounds(this.vertices)
         this.color = args.color ?? "grey"
+        this.id = Body.idCounter++
+        this.positionalCorrection = new Vector(0, 0)
+    }
+
+    getBounds() {
+        return this.bounds
     }
 
     transformedVertices() {
@@ -44,5 +56,12 @@ export default class Body {
         let mat = Matrix.transformation( 0, 0, this.angle, 1, 1, x, y )
         for (let i = 0; i < this.model.length; i++)
             mat.multiplyVec(this.model[i], 1, this.vertices[i])
+        this.bounds = AABB.polygonBounds(this.vertices)
+    }
+
+    healthCheck() {
+        let { x, y } = this.position
+        if ( isNaN(x) || isNaN(y) )
+            throw new Error("NaN component!")
     }
 }

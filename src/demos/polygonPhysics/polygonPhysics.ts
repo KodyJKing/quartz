@@ -1,4 +1,5 @@
 import Clock from "../../Clock"
+import Broadphase from "../../collision/Broadphase"
 import SAT, { CollisionInfo } from "../../collision/SAT"
 import { boxPolygon, initCanvas, notQuiteInfiniteMass, polygon, polygonPath } from "../../common"
 import Color, { Colors } from "../../graphics/Color"
@@ -19,76 +20,61 @@ const gravity = 2000
 const coefficientOfFriction = .1
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1
-const positionalDamping = 0.5
+const positionalDamping = .5
 const positionalIterations = 10
 const velocityIterations = 10
-const restitution = 0.2
+const restitution = 0.1
 const minBounceVelocity = 0 // 400
+const wallThickness = 80
+const broadphaseCellSize = 100
 
 let pairs: Pair[] = []
 const bodies: Body[] = [
-    // new Body({
-    //     model: polygon(3, 100),
-    //     position: new Vector(canvas.width / 2, canvas.height / 2),
-    //     angle: 0.1, //-2 * Math.PI / 5 / 4,
-    //     angularVelocity: -50,
-    //     mass: 1,
-    //     inertia: 10000
-    // }),
-    // new Body({
-    //     model: polygon(3, 100),
-    //     position: new Vector(canvas.width / 2, canvas.height / 4 ),
-    //     angle: 0, //-2 * Math.PI / 5 / 4 + .1,
-    //     angularVelocity: -50,
-    //     mass: 1,
-    //     inertia: 10000
-    // }),
     new Body({
-        model: boxPolygon(canvas.width, 20),
-         position: new Vector(canvas.width / 2, canvas.height - 10),
+        model: boxPolygon(canvas.width, wallThickness),
+         position: new Vector(canvas.width / 2, canvas.height),
          isStatic: true,
          color: wallColor
     }),
     new Body({
-        model: boxPolygon(canvas.width, 20),
-         position: new Vector(canvas.width / 2, 10),
+        model: boxPolygon(canvas.width, wallThickness),
+         position: new Vector(canvas.width / 2, 0),
          isStatic: true,
          color: wallColor
     }),
     new Body({
-        model: boxPolygon(20, canvas.height),
-         position: new Vector(canvas.width - 10, canvas.height / 2),
+        model: boxPolygon(wallThickness, canvas.height),
+         position: new Vector(canvas.width, canvas.height / 2),
          isStatic: true,
          color: wallColor
     }),
     new Body({
-        model: boxPolygon(20, canvas.height),
-         position: new Vector( 10, canvas.height / 2),
+        model: boxPolygon(wallThickness, canvas.height),
+         position: new Vector( 0, canvas.height / 2),
          isStatic: true,
          color: wallColor
     }),
 ]
 
 {
-    let radius = 50
     for (let i = 0; i < 100; i++) {
+        let radius = (40 + (Math.random() - .5) * 20)
+        let mass = radius ** 2 /  (50 * 50)
+        let inertia = mass * radius ** 2
         bodies.push(new Body({
-            model: polygon(Math.floor(Math.random() * 4) + 3, radius),
+            model: polygon(Math.floor(Math.random() * 6) + 3, radius),
             // model: polygon(4, radius),
             position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height ),
-            angularVelocity: (Math.random() - .5) * 500,
-            inertia: radius * radius,
+            angularVelocity: (Math.random() - .5) * 100,
+            velocity: Vector.polar(Math.random() * Math.PI * 2, Math.random() * 2000),
+            mass, inertia,
             color: randomColor()
         }))
     }
 }
 
 let paused = false
-let debugNextFrame = false
-window.addEventListener( "keypress", ev => { 
-    if ( ev.key == " " ) paused = !paused 
-    if (ev.key == "`") debugNextFrame = true
-} )
+window.addEventListener( "keypress", ev => {  if ( ev.key == " " ) paused = !paused } )
 
 mainLoop()
 function mainLoop() {
@@ -133,20 +119,20 @@ function render() {
         // c.stroke()
     }
 
-    // for (let pair of pairs) {
-    //     let n = pair.info.normal.scale(5)
-    //     for (let p of pair.info.contact) {
-    //         c.beginPath()
-    //         c.arc(p.x, p.y, 2, 0, Math.PI * 2)
-    //         c.fillStyle = "white"
-    //         c.fill()
-    //         c.beginPath()
-    //         c.moveTo(p.x - n.x, p.y - n.y)
-    //         c.lineTo(p.x + n.x, p.y + n.y)
-    //         c.strokeStyle = "rgba(255, 255, 255, .5)"
-    //         c.stroke()
-    //     }
-    // }
+    for (let pair of pairs) {
+        let n = pair.info.normal.scale(5)
+        for (let p of pair.info.contact) {
+            c.beginPath()
+            c.arc(p.x, p.y, 2, 0, Math.PI * 2)
+            c.fillStyle = "white"
+            c.fill()
+            c.beginPath()
+            c.moveTo(p.x - n.x, p.y - n.y)
+            c.lineTo(p.x + n.x, p.y + n.y)
+            c.strokeStyle = "rgba(255, 255, 255, .5)"
+            c.stroke()
+        }
+    }
 
     c.fillStyle = "red"
     c.font = "24px Impact"
@@ -154,11 +140,19 @@ function render() {
 }
 
 function update() {
-    pairs = generatePairs()
     for (let body of bodies) {
         if (body.isStatic)
             continue
-        body.velocity.y += gravity * timeStep
+        if ( !input.mouse.get( 2 ) )
+            body.velocity.y += gravity * timeStep
+        if ( input.mouse.get( 0 ) ) {
+            let diff = input.cursor.subtract( body.position )
+            let length = Math.max( diff.length, 50 )
+            diff = diff.scale( -250000000 / length ** 3 )
+            body.velocity.x += diff.x * timeStep
+            body.velocity.y += diff.y * timeStep
+
+        }
         body.position.x += body.velocity.x * timeStep
         body.position.y += body.velocity.y * timeStep
         body.angle += body.angularVelocity * timeStep
@@ -166,25 +160,28 @@ function update() {
         body.velocity.x *= linearAirDrag
         body.velocity.y *= linearAirDrag
         body.updateVertices()
+        body.healthCheck()
     }
+    pairs = generatePairs()
     for (let i = 0; i < velocityIterations; i++)
         solveVelocities(pairs)
     for (let i = 0; i < positionalIterations; i++)
         solvePositions(pairs)
+    // let netPenetration = pairs.map(x => Math.max(0, -x.info.separation)).reduce((a, b) => a + b)
+    // console.log("Net penetration: " + netPenetration.toFixed(2))
 }
 
 type Pair = { bodyA: Body, bodyB: Body, info: CollisionInfo }
 function generatePairs() {
     let pairs: Pair[] = []
-    for (let i = 0; i < bodies.length; i++) {
-        let bodyA = bodies[i]
-        for (let j = i + 1; j < bodies.length; j++) {
-            let bodyB = bodies[j]
+    Broadphase.findPairs(
+        bodies, canvas.width, canvas.height, broadphaseCellSize, 
+        (bodyA, bodyB) => {
             let info = SAT(bodyA.vertices, bodyB.vertices)
             if (info.separation <= 0)
                 pairs.push({bodyA, bodyB, info})
         }
-    }
+    )
     return pairs
 }
 
@@ -207,12 +204,16 @@ function solvePositions(pairs: Pair[]) {
         if ( !bodyA.isStatic ) {
             bodyA.position.x -= normal.x * displacementA
             bodyA.position.y -= normal.y * displacementA
+            // bodyA.positionalCorrection.x -= normal.x * displacementA
+            // bodyA.positionalCorrection.y -= normal.y * displacementA
             bodyA.updateVertices()
         }
 
         if ( !bodyB.isStatic ) {
             bodyB.position.x += normal.x * displacementB
             bodyB.position.y += normal.y * displacementB
+            // bodyB.positionalCorrection.x += normal.x * displacementB
+            // bodyB.positionalCorrection.y += normal.y * displacementB
             bodyB.updateVertices()
         }
 

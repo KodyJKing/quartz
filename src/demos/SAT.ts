@@ -46,7 +46,7 @@ function render() {
     ].map( v => matA.multiplyVec( v ) )
 
     let matB = Matrix.translation( 500, 500 )
-    let polyB = polygon( 20, 50 ).map( v => matB.multiplyVec( v ) )
+    let polyB = polygon( 6, 50 ).map( v => matB.multiplyVec( v ) )
 
     let contactInfo = SAT( polyA, polyB )
     if ( contactInfo.separation <= 0 )

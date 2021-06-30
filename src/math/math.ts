@@ -10,40 +10,6 @@ export function randomFloor( upperLimit: number ) {
     return Math.floor( Math.random() * upperLimit )
 }
 
-export class AABB {
-    minx: number
-    miny: number
-    maxx: number
-    maxy: number
-
-    constructor( minx: number, miny: number, maxx: number, maxy: number ) {
-        this.minx = minx
-        this.miny = miny
-        this.maxx = maxx
-        this.maxy = maxy
-    }
-
-    static fromDimensions( pos: Vector, dimensions: Vector ) {
-        return new AABB( pos.x, pos.y, pos.x + dimensions.x, pos.y + dimensions.y )
-    }
-
-    hull( a: AABB, b: AABB ) {
-        function min( x, y ) { return Math.min( x, y ) }
-        function max( x, y ) { return Math.max( x, y ) }
-        return new AABB(
-            min( a.minx, b.minx ),
-            min( a.miny, b.miny ),
-            max( a.maxx, b.maxx ),
-            max( a.maxy, b.maxy ),
-        )
-    }
-
-    contains( p: Vector ) {
-        let { minx, miny, maxx, maxy } = this
-        return p.x >= minx && p.x <= maxx && p.y >= miny && p.y <= maxy
-    }
-}
-
 export function contains( min: number, max: number, x: number ) {
     return x >= min && x <= max
 }
