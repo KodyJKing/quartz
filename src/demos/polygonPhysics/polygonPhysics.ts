@@ -1,7 +1,7 @@
 import Clock from "../../Clock"
 import Broadphase from "../../collision/Broadphase"
 import SAT, { CollisionInfo } from "../../collision/SAT"
-import { boxPolygon, initCanvas, notQuiteInfiniteMass, polygon, polygonPath } from "../../common"
+import { boxPolygon, initCanvas, polygon, polygonPath } from "../../common"
 import Color, { Colors } from "../../graphics/Color"
 import Input from "../../Input"
 import Matrix from "../../math/Matrix"
@@ -18,8 +18,8 @@ const randomColor = () => colorPalette[Math.random() * colorPalette.length | 0]
 const timeStep = 1 / 120
 const gravity = 2000
 const coefficientOfFriction = .1
-const rotationalAirDrag = 1 // .99
-const linearAirDrag = 1
+const rotationalAirDrag = 1 // .995
+const linearAirDrag = 1 // .995
 const positionalDamping = .5
 const positionalIterations = 10
 const velocityIterations = 10
@@ -63,7 +63,7 @@ const bodies: Body[] = [
         let inertia = mass * radius ** 2
         bodies.push(new Body({
             model: polygon(Math.floor(Math.random() * 6) + 3, radius),
-            // model: polygon(4, radius),
+            // model: polygon(6, radius),
             position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height ),
             angularVelocity: (Math.random() - .5) * 100,
             velocity: Vector.polar(Math.random() * Math.PI * 2, Math.random() * 2000),
@@ -119,20 +119,20 @@ function render() {
         // c.stroke()
     }
 
-    for (let pair of pairs) {
-        let n = pair.info.normal.scale(5)
-        for (let p of pair.info.contact) {
-            c.beginPath()
-            c.arc(p.x, p.y, 2, 0, Math.PI * 2)
-            c.fillStyle = "white"
-            c.fill()
-            c.beginPath()
-            c.moveTo(p.x - n.x, p.y - n.y)
-            c.lineTo(p.x + n.x, p.y + n.y)
-            c.strokeStyle = "rgba(255, 255, 255, .5)"
-            c.stroke()
-        }
-    }
+    // for (let pair of pairs) {
+    //     let n = pair.info.normal.scale(5)
+    //     for (let p of pair.info.contact) {
+    //         c.beginPath()
+    //         c.arc(p.x, p.y, 2, 0, Math.PI * 2)
+    //         c.fillStyle = "white"
+    //         c.fill()
+    //         c.beginPath()
+    //         c.moveTo(p.x - n.x, p.y - n.y)
+    //         c.lineTo(p.x + n.x, p.y + n.y)
+    //         c.strokeStyle = "rgba(255, 255, 255, .5)"
+    //         c.stroke()
+    //     }
+    // }
 
     c.fillStyle = "red"
     c.font = "24px Impact"
