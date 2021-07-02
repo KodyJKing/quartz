@@ -20,7 +20,7 @@ const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 
 
 const timeStep = 1 / 120
 const gravity = 2000
-const coefficientOfFriction = 0 // .1
+const coefficientOfFriction = 0
 const rotationalAirDrag = .99
 const linearAirDrag = .99
 
@@ -105,6 +105,7 @@ function addStack() {
             let inertia = mass * size ** 2 * .5
             bodies.push( new Body( {
                 model: boxPolygon( size, size ),
+                // model: polygon( 6, size / 2 ),
                 position: new Vector( canvas.width / 2 + j * ( size + 1 ) - width / 2, canvas.height - wallThickness / 2 - size / 2 - i * size ),
                 mass, inertia,
                 color: randomColor()

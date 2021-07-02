@@ -1,3 +1,4 @@
+import { Contact } from "../../collision/SAT"
 import { clamp } from "../../math/math"
 import { Vector } from "../../math/Vector"
 import Body from "./Body"
@@ -10,10 +11,9 @@ export function solveVelocities(
     for ( let pair of pairs ) {
         let { bodyA, bodyB, info } = pair
         let { normal } = info
-        if ( solvePairs && info.contact.length == 2 ) {
-            solvePair( pair, restitution )
-            continue
-        }
+        if ( solvePairs && info.contact.length == 2 )
+            if ( solvePair( pair, restitution, coefficientOfFriction ) )
+                continue
         for ( let contact of info.contact ) {
             let point = contact.point
             let ra = point.subtract( bodyA.position )
@@ -30,34 +30,7 @@ export function solveVelocities(
             let combinedEffectiveMass = 1 / ( 1 / bodyA.mass + 1 / bodyB.mass + raCrossN ** 2 / bodyA.inertia + rbCrossN ** 2 / bodyB.inertia )
             let normalImpulse = velBA.dot( normal ) * ( 1 + _restitution ) * combinedEffectiveMass
 
-            // let oldImpulse = contact.impulse
-            // contact.impulse += normalImpulse
-            // contact.impulse = Math.min( 0, contact.impulse )
-            // normalImpulse = contact.impulse - oldImpulse
-
-            if ( normalImpulse >= 0 )
-                continue
-
-            // let tangent = normal.leftNormal()
-            // let tangentImpulse = normalImpulse * coefficientOfFriction * -Math.sign( velBA.dot( tangent ) )
-
-            let impulse = new Vector(
-                normal.x * normalImpulse, //+ tangent.x * tangentImpulse,
-                normal.y * normalImpulse //+ tangent.y * tangentImpulse
-            )
-
-            if ( !bodyA.isStatic ) {
-                applyImpulse( bodyA, impulse, point )
-                // bodyA.velocity.x += impulse.x / bodyA.mass
-                // bodyA.velocity.y += impulse.y / bodyA.mass
-                // bodyA.angularVelocity += ra.cross( impulse ) / bodyA.inertia
-            }
-            if ( !bodyB.isStatic ) {
-                applyImpulse( bodyB, impulse.negate(), point )
-                // bodyB.velocity.x -= impulse.x / bodyB.mass
-                // bodyB.velocity.y -= impulse.y / bodyB.mass
-                // bodyB.angularVelocity -= rb.cross( impulse ) / bodyB.inertia
-            }
+            applyImpulseAndFriction( bodyA, bodyB, contact, normal, normalImpulse, coefficientOfFriction )
         }
     }
 }
@@ -69,6 +42,33 @@ function applyImpulse( body: Body, impulse: Vector, applicationPoint: Vector ) {
     body.velocity.x += impulse.x / body.mass
     body.velocity.y += impulse.y / body.mass
     body.angularVelocity += angularImpulse / body.inertia
+}
+
+function applyImpulseAndFriction( bodyA: Body, bodyB: Body, contact: Contact, normal: Vector, normalImpulse: number, coefficientOfFriction: number ) {
+    let oldImpulse = contact.impulse
+    contact.impulse += normalImpulse
+    contact.impulse = Math.min( 0, contact.impulse )
+    normalImpulse = contact.impulse - oldImpulse
+
+    let ra = contact.point.subtract( bodyA.position )
+    let rb = contact.point.subtract( bodyB.position )
+
+    let velA = bodyA.velocity.add( ra.crossZLeft( bodyA.angularVelocity ) )
+    let velB = bodyB.velocity.add( rb.crossZLeft( bodyB.angularVelocity ) )
+    let velBA = velB.subtract( velA )
+
+    let tangent = normal.leftNormal()
+    let tangentImpulse = normalImpulse * coefficientOfFriction * -Math.sign( velBA.dot( tangent ) )
+
+    let impulse = new Vector(
+        normal.x * normalImpulse + tangent.x * tangentImpulse,
+        normal.y * normalImpulse + tangent.y * tangentImpulse
+    )
+
+    if ( !bodyA.isStatic )
+        applyImpulse( bodyA, impulse, contact.point )
+    if ( !bodyB.isStatic )
+        applyImpulse( bodyB, impulse.negate(), contact.point )
 }
 
 function deltaVelocityAt( body: Body, impulse: Vector, applicationPoint: Vector, testPoint: Vector ) {
@@ -91,7 +91,7 @@ function velocityAt( body: Body, p: Vector ) {
     return body.velocity.add( tangentialVelocity )
 }
 
-function solvePair( pair: Pair, restitution: number ) {
+function solvePair( pair: Pair, restitution: number, coefficientOfFriction: number ) {
     let { bodyA, bodyB, info } = pair
     let { normal, contact } = info
     let [ c1, c2 ] = contact
@@ -114,21 +114,32 @@ function solvePair( pair: Pair, restitution: number ) {
 
     let det = M11 * M22 - M12 * M21, detInv = 1 / det
 
+    if ( Math.abs( det ) < 0.1 )
+        return false
+
     let I11 = M22 * detInv, I12 = - M12 * detInv
     let I21 = - M21 * detInv, I22 = M11 * detInv
 
     let impulse1 = ( I11 * dVel1 + I12 * dVel2 ) * ( 1 + restitution )
     let impulse2 = ( I21 * dVel1 + I22 * dVel2 ) * ( 1 + restitution )
 
-    if ( !bodyA.isStatic ) {
-        applyImpulse( bodyA, normal.scale( impulse1 ), p1 )
-        applyImpulse( bodyA, normal.scale( impulse2 ), p2 )
-    }
+    applyImpulseAndFriction( bodyA, bodyB, c1, normal, impulse1, coefficientOfFriction )
+    applyImpulseAndFriction( bodyA, bodyB, c2, normal, impulse2, coefficientOfFriction )
 
-    if ( !bodyB.isStatic ) {
-        applyImpulse( bodyB, normal.scale( -impulse1 ), p1 )
-        applyImpulse( bodyB, normal.scale( -impulse2 ), p2 )
-    }
+    return true
+
+    // impulse1 = Math.min( 0, impulse1 )
+    // impulse2 = Math.min( 0, impulse2 )
+
+    // if ( !bodyA.isStatic ) {
+    //     applyImpulse( bodyA, normal.scale( impulse1 ), p1 )
+    //     applyImpulse( bodyA, normal.scale( impulse2 ), p2 )
+    // }
+
+    // if ( !bodyB.isStatic ) {
+    //     applyImpulse( bodyB, normal.scale( -impulse1 ), p1 )
+    //     applyImpulse( bodyB, normal.scale( -impulse2 ), p2 )
+    // }
 }
 
 // function blockSolve( pair: Pair ) {

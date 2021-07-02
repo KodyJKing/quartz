@@ -2,7 +2,7 @@ import { Vector } from "../math/Vector"
 import SupportFunction from "./SupportFunction"
 import { modulus } from "../math/math"
 
-type Contact = { point: Vector, impulse: number }
+export type Contact = { point: Vector, impulse: number }
 export type CollisionInfo = { normal: Vector, separation: number, contact: Contact[] }
 export default function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
     let maxNormal = Vector.zero
