@@ -20,13 +20,16 @@ const gravity = 2000
 const coefficientOfFriction = .1
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1 // .99
-const positionalDamping = .5
+const positionalDamping = .25
 const positionalIterations = 10
 const velocityIterations = 10
 const restitution = 0.1
 const minBounceVelocity = 0 // 400
 const wallThickness = 80
 const broadphaseCellSize = 100
+
+let toggleFlag = false
+window.addEventListener( "keypress", ev => {  if ( ev.key == " " ) toggleFlag = !toggleFlag } )
 
 let pairs: Pair[] = []
 const bodies: Body[] = [
@@ -56,47 +59,42 @@ const bodies: Body[] = [
     }),
 ]
 
-// {
-//     for (let i = 0; i < 300; i++) {
-//         let radius = 30 // (40 + (Math.random() - .5) * 20)
-//         let mass = radius ** 2 /  (50 * 50)
-//         let inertia = mass * radius ** 2
-//         bodies.push(new Body({
-//             model: polygon(Math.floor(Math.random() * 6) + 3, radius),
-//             // model: polygon(6, radius),
-//             position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height ),
-//             angularVelocity: (Math.random() - .5) * 100,
-//             velocity: Vector.polar(Math.random() * Math.PI * 2, Math.random() * 2000),
-//             mass, inertia,
-//             color: randomColor()
-//         }))
-//     }
-// }
-
-for (let i = 0; i < 7; i++) {
-    for (let j = 0; j < 1; j++) {
-        let size = 60
-        let mass = size ** 2 /  (50 * 50)
-        let inertia = mass * size ** 2
+{
+    for (let i = 0; i < 100; i++) {
+        let radius = 50 // (40 + (Math.random() - .5) * 20)
+        let mass = radius ** 2 /  (50 * 50)
+        let inertia = mass * radius ** 2
         bodies.push(new Body({
-            model: boxPolygon(size, size),
-            position: new Vector(canvas.width / 2 + j * (size + 1), canvas.height - wallThickness / 2 - size / 2 - i * size ),
+            model: polygon(Math.floor(Math.random() * 6) + 3, radius),
+            // model: polygon(6, radius),
+            position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height ),
+            angularVelocity: (Math.random() - .5) * 100,
+            velocity: Vector.polar(Math.random() * Math.PI * 2, Math.random() * 2000),
             mass, inertia,
             color: randomColor()
         }))
     }
 }
 
-let paused = false
-window.addEventListener( "keypress", ev => {  if ( ev.key == " " ) paused = !paused } )
+// for (let i = 0; i < 7; i++) {
+//     for (let j = 0; j < 1; j++) {
+//         let size = 60
+//         let mass = size ** 2 /  (50 * 50)
+//         let inertia = mass * size ** 2
+//         bodies.push(new Body({
+//             model: boxPolygon(size, size),
+//             position: new Vector(canvas.width / 2 + j * (size + 1), canvas.height - wallThickness / 2 - size / 2 - i * size ),
+//             mass, inertia,
+//             color: randomColor()
+//         }))
+//     }
+// }
 
 mainLoop()
 function mainLoop() {
     clock.nextFrame()
-    if ( !paused ) {
-        render()
-        update()
-    }
+    render()
+    update()
     window.requestAnimationFrame( mainLoop )
 }
 
@@ -180,7 +178,7 @@ function update() {
     for (let i = 0; i < velocityIterations; i++)
         solveVelocities(pairs)
     for (let i = 0; i < positionalIterations; i++)
-        solvePositions(pairs)
+        solvePositions(pairs, toggleFlag)
 
     // let netPenetration = pairs.map(x => Math.max(0, -x.info.separation)).reduce((a, b) => a + b)
     // console.log("Net penetration: " + netPenetration.toFixed(2))
@@ -210,7 +208,7 @@ function generatePairs() {
     return pairs
 }
 
-function solvePositions(pairs: Pair[]) {
+function solvePositions(pairs: Pair[], updateGeometryAndCollision = false) {
     // TODO: Try implementing angular displacements.
     for (let pair of pairs) {
         let { bodyA, bodyB, info } = pair
@@ -221,7 +219,11 @@ function solvePositions(pairs: Pair[]) {
         let massA = bodyA.mass
         let massB = bodyB.mass
 
-        let displacement = -separation * positionalDamping
+        let correctedDisplacement = 0
+        if (!updateGeometryAndCollision)
+            correctedDisplacement = normal.dot(bodyB.positionalCorrection.subtract(bodyA.positionalCorrection))
+
+        let displacement = (-separation - correctedDisplacement) * positionalDamping
         let massRatio = massB / massA
         let displacementB = displacement / ( 1 + massRatio )
         let displacementA = displacement - displacementB
@@ -231,7 +233,8 @@ function solvePositions(pairs: Pair[]) {
             bodyA.position.y -= normal.y * displacementA
             bodyA.positionalCorrection.x -= normal.x * displacementA
             bodyA.positionalCorrection.y -= normal.y * displacementA
-            bodyA.updateVertices()
+            if (updateGeometryAndCollision)
+                bodyA.updateVertices()
         }
 
         if ( !bodyB.isStatic ) {
@@ -239,10 +242,12 @@ function solvePositions(pairs: Pair[]) {
             bodyB.position.y += normal.y * displacementB
             bodyB.positionalCorrection.x += normal.x * displacementB
             bodyB.positionalCorrection.y += normal.y * displacementB
-            bodyB.updateVertices()
+            if (updateGeometryAndCollision)
+                bodyB.updateVertices()
         }
 
-        pair.info = SAT(bodyA.vertices, bodyB.vertices)
+        if (updateGeometryAndCollision)
+            pair.info = SAT(bodyA.vertices, bodyB.vertices)
     }
 }
 
