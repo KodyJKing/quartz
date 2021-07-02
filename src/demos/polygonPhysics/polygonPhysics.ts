@@ -1,12 +1,11 @@
 import Clock from "../../Clock"
 import Broadphase from "../../collision/Broadphase"
 import SAT, { CollisionInfo } from "../../collision/SAT"
-import { boxPolygon, initCanvas, polygon, polygonPath } from "../../common"
-import Color, { Colors } from "../../graphics/Color"
+import { boxPolygon, initCanvas, polygon, polygonPath, notQuiteInfiniteMass } from "../../common"
 import Input from "../../Input"
 import { Vector } from "../../math/Vector"
 import Body from "./Body"
-import { solvePositions } from "./solvePositions"
+import { applyPositionalCorrections, solvePositions } from "./solvePositions"
 import { solveVelocities } from "./solveVelocities"
 
 const canvas = initCanvas()
@@ -21,19 +20,24 @@ const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 
 
 const timeStep = 1 / 120
 const gravity = 2000
-const coefficientOfFriction = .1
-const rotationalAirDrag = 1 // .99
-const linearAirDrag = 1 // .99
-const positionalDamping = .25
+const coefficientOfFriction = 0 // .1
+const rotationalAirDrag = .99
+const linearAirDrag = .99
+
 const positionalIterations = 10
+const positionalDamping = .25
+const updateGeometryAndCollision = false
+const positionalWarming = .8
+
 const velocityIterations = 10
 const restitution = 0.1
 const minBounceVelocity = 0 // 400
+
 const wallThickness = 80
 
 const broadphaseCellSize = 100
 
-let toggleFlag = false
+let toggleFlag = true
 window.addEventListener( "keypress", ev => {
     if ( ev.key == " " ) {
         toggleFlag = !toggleFlag
@@ -69,17 +73,19 @@ const bodies: Body[] = [
     } ),
 ]
 
-addRandomShapes()
+// addRandomShapes()
 function addRandomShapes() {
     for ( let i = 0; i < 100; i++ ) {
-        let radius = 50 // (40 + (Math.random() - .5) * 20)
+        let radius = 50
+        // let radius = ( 60 + ( Math.random() - .5 ) * 20 )
         let mass = radius ** 2 / ( 50 * 50 )
-        let inertia = mass * radius ** 2
+        let inertia = mass * radius ** 2 * .5
         bodies.push( new Body( {
             model: polygon( Math.floor( Math.random() * 6 ) + 3, radius ),
-            // model: polygon(6, radius),
+            // model: polygon( 4, radius ),
             position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
             angularVelocity: ( Math.random() - .5 ) * 100,
+            // angle: Math.PI / 4,
             velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 2000 ),
             mass, inertia,
             color: randomColor()
@@ -87,16 +93,19 @@ function addRandomShapes() {
     }
 }
 
-// addStack()
+addStack()
 function addStack() {
-    for ( let i = 0; i < 7; i++ ) {
-        for ( let j = 0; j < 1; j++ ) {
-            let size = 60
+    let size = 80
+    let rows = 10
+    let columns = 3
+    let width = columns * ( size + 1 )
+    for ( let i = 0; i < rows; i++ ) {
+        for ( let j = 0; j < columns; j++ ) {
             let mass = size ** 2 / ( 50 * 50 )
-            let inertia = mass * size ** 2
+            let inertia = mass * size ** 2 * .5
             bodies.push( new Body( {
                 model: boxPolygon( size, size ),
-                position: new Vector( canvas.width / 2 + j * ( size + 1 ), canvas.height - wallThickness / 2 - size / 2 - i * size ),
+                position: new Vector( canvas.width / 2 + j * ( size + 1 ) - width / 2, canvas.height - wallThickness / 2 - size / 2 - i * size ),
                 mass, inertia,
                 color: randomColor()
             } ) )
@@ -115,17 +124,18 @@ function mainLoop() {
 function render() {
     c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
-    c.lineWidth = 2
+    c.lineWidth = 1
     c.lineCap = "round"
     c.lineJoin = "round"
 
     for ( let body of bodies ) {
         polygonPath( c, body.vertices )
         c.fillStyle = body.color; c.fill()
-        polygonPath( c, body.vertices, -2 )
-        // c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .025 ).toString()
-        c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .05 ).toString()
-        c.stroke()
+        if ( !body.isStatic ) {
+            polygonPath( c, body.vertices, -c.lineWidth )
+            c.strokeStyle = body.outlineColor
+            c.stroke()
+        }
 
         // let p = body.position
         // c.beginPath()
@@ -176,21 +186,21 @@ function update() {
         body.angularVelocity *= rotationalAirDrag
         body.velocity.x *= linearAirDrag
         body.velocity.y *= linearAirDrag
-
-        body.positionalCorrection.x = 0
-        body.positionalCorrection.y = 0
     }
 
     pairs = generatePairs()
-    let velocitySolverOptions = { minBounceVelocity, restitution, coefficientOfFriction }
-    let positionalSolverOptions = { positionalDamping, updateGeometryAndCollision: toggleFlag }
+    let velocitySolverOptions = { minBounceVelocity, restitution, coefficientOfFriction, solvePairs: toggleFlag }
+    let positionalSolverOptions = { positionalDamping, updateGeometryAndCollision }
     for ( let i = 0; i < velocityIterations; i++ )
         solveVelocities( pairs, velocitySolverOptions )
     for ( let i = 0; i < positionalIterations; i++ )
         solvePositions( pairs, positionalSolverOptions )
+    applyPositionalCorrections( bodies, positionalWarming )
 
-    // let netPenetration = pairs.map(x => Math.max(0, -x.info.separation)).reduce((a, b) => a + b)
-    // console.log("Net penetration: " + netPenetration.toFixed(2))
+    // if ( pairs.length > 0 ) {
+    //     let netPenetration = pairs.map( x => Math.max( 0, -x.info.separation ) ).reduce( ( a, b ) => a + b )
+    //     console.log( "Net penetration: " + netPenetration.toFixed( 2 ) )
+    // }
 
     for ( let body of bodies ) {
         if ( body.isStatic )
@@ -201,6 +211,7 @@ function update() {
         body.updateVertices()
         body.healthCheck()
     }
+
 }
 
 export type Pair = { bodyA: Body, bodyB: Body, info: CollisionInfo }
@@ -209,6 +220,8 @@ function generatePairs() {
     Broadphase.findPairs(
         bodies, canvas.width, canvas.height, broadphaseCellSize,
         ( bodyA, bodyB ) => {
+            if ( bodyA.isStatic && bodyB.isStatic )
+                return
             let info = SAT( bodyA.vertices, bodyB.vertices )
             if ( info.separation <= 0 )
                 pairs.push( { bodyA, bodyB, info } )

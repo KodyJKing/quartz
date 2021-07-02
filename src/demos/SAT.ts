@@ -62,9 +62,10 @@ function render() {
 
     c.globalAlpha = 1
 
-    for ( let v of contactInfo.contact) {
+    for ( let contact of contactInfo.contact ) {
+        let p = contact.point
         c.beginPath()
-        c.arc( v.x, v.y, 4, 0, Math.PI * 2 )
+        c.arc( p.x, p.y, 4, 0, Math.PI * 2 )
         c.fillStyle = colorPalette[ 1 ]
         c.fill()
     }
