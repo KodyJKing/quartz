@@ -13,9 +13,12 @@ const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
 const input = new Input()
 const clock = new Clock()
+
 const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
-const wallColor = "#d1ccb6"
+const offWhite = "#ebe6d1"
+const offWhiteDarker = "#d1ccb6"
 const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
+
 const timeStep = 1 / 120
 const gravity = 2000
 const coefficientOfFriction = .1
@@ -27,6 +30,7 @@ const velocityIterations = 10
 const restitution = 0.1
 const minBounceVelocity = 0 // 400
 const wallThickness = 80
+
 const broadphaseCellSize = 100
 
 let toggleFlag = false
@@ -43,25 +47,25 @@ const bodies: Body[] = [
         model: boxPolygon( canvas.width, wallThickness ),
         position: new Vector( canvas.width / 2, canvas.height ),
         isStatic: true,
-        color: wallColor
+        color: offWhiteDarker
     } ),
     new Body( {
         model: boxPolygon( canvas.width, wallThickness ),
         position: new Vector( canvas.width / 2, 0 ),
         isStatic: true,
-        color: wallColor
+        color: offWhiteDarker
     } ),
     new Body( {
         model: boxPolygon( wallThickness, canvas.height ),
         position: new Vector( canvas.width, canvas.height / 2 ),
         isStatic: true,
-        color: wallColor
+        color: offWhiteDarker
     } ),
     new Body( {
         model: boxPolygon( wallThickness, canvas.height ),
         position: new Vector( 0, canvas.height / 2 ),
         isStatic: true,
-        color: wallColor
+        color: offWhiteDarker
     } ),
 ]
 
@@ -109,7 +113,7 @@ function mainLoop() {
 }
 
 function render() {
-    c.fillStyle = "#ebe6d1"
+    c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
     c.lineWidth = 2
     c.lineCap = "round"
@@ -126,13 +130,13 @@ function render() {
         // let p = body.position
         // c.beginPath()
         // c.arc( p.x, p.y, 4, 0, Math.PI * 2 )
-        // c.fillStyle = "#ebe6d1"; c.fill()
+        // c.fillStyle = offWhite; c.fill()
 
         // let h = Vector.polar( body.angle, 20 )
         // c.beginPath()
         // c.moveTo( p.x, p.y )
         // c.lineTo( p.x + h.x, p.y + h.y )
-        // c.strokeStyle = "#ebe6d1"; c.stroke()
+        // c.strokeStyle = offWhite; c.stroke()
     }
 
     // for ( let pair of pairs ) {
@@ -140,7 +144,7 @@ function render() {
     //     for ( let p of pair.info.contact ) {
     //         c.beginPath()
     //         c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
-    //         c.fillStyle = "#ebe6d1"; c.fill()
+    //         c.fillStyle = offWhite; c.fill()
     //         c.beginPath()
     //         c.moveTo( p.x - n.x, p.y - n.y )
     //         c.lineTo( p.x + n.x, p.y + n.y )
