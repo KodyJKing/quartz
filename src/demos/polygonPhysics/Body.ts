@@ -16,7 +16,7 @@ export default class Body {
     isStatic: boolean
     color: string
     id: number
-    // positionalCorrection: Vector
+    positionalCorrection: Vector
     static idCounter = 0
     constructor(args: { 
         model: Vector[], 
@@ -38,7 +38,7 @@ export default class Body {
         this.bounds = AABB.polygonBounds(this.vertices)
         this.color = args.color ?? "grey"
         this.id = Body.idCounter++
-        // this.positionalCorrection = new Vector(0, 0)
+        this.positionalCorrection = new Vector(0, 0)
     }
 
     getBounds() {

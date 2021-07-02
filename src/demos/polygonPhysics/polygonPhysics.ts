@@ -18,8 +18,8 @@ const randomColor = () => colorPalette[Math.random() * colorPalette.length | 0]
 const timeStep = 1 / 120
 const gravity = 2000
 const coefficientOfFriction = .1
-const rotationalAirDrag = 1 // .995
-const linearAirDrag = 1 // .995
+const rotationalAirDrag = 1 // .99
+const linearAirDrag = 1 // .99
 const positionalDamping = .5
 const positionalIterations = 10
 const velocityIterations = 10
@@ -56,17 +56,31 @@ const bodies: Body[] = [
     }),
 ]
 
-{
-    for (let i = 0; i < 100; i++) {
-        let radius = (40 + (Math.random() - .5) * 20)
-        let mass = radius ** 2 /  (50 * 50)
-        let inertia = mass * radius ** 2
+// {
+//     for (let i = 0; i < 300; i++) {
+//         let radius = 30 // (40 + (Math.random() - .5) * 20)
+//         let mass = radius ** 2 /  (50 * 50)
+//         let inertia = mass * radius ** 2
+//         bodies.push(new Body({
+//             model: polygon(Math.floor(Math.random() * 6) + 3, radius),
+//             // model: polygon(6, radius),
+//             position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height ),
+//             angularVelocity: (Math.random() - .5) * 100,
+//             velocity: Vector.polar(Math.random() * Math.PI * 2, Math.random() * 2000),
+//             mass, inertia,
+//             color: randomColor()
+//         }))
+//     }
+// }
+
+for (let i = 0; i < 7; i++) {
+    for (let j = 0; j < 1; j++) {
+        let size = 60
+        let mass = size ** 2 /  (50 * 50)
+        let inertia = mass * size ** 2
         bodies.push(new Body({
-            model: polygon(Math.floor(Math.random() * 6) + 3, radius),
-            // model: polygon(6, radius),
-            position: new Vector(Math.random() * canvas.width, Math.random() * canvas.height ),
-            angularVelocity: (Math.random() - .5) * 100,
-            velocity: Vector.polar(Math.random() * Math.PI * 2, Math.random() * 2000),
+            model: boxPolygon(size, size),
+            position: new Vector(canvas.width / 2 + j * (size + 1), canvas.height - wallThickness / 2 - size / 2 - i * size ),
             mass, inertia,
             color: randomColor()
         }))
@@ -97,6 +111,7 @@ function render() {
         polygonPath(c, body.vertices)
         c.fillStyle = body.color
         c.fill()
+        polygonPath(c, body.vertices, -2)
         c.strokeStyle = Color.parse(body.color).lerp(Colors.black, .025).toString()
         c.stroke()
 
@@ -151,24 +166,34 @@ function update() {
             diff = diff.scale( -250000000 / length ** 3 )
             body.velocity.x += diff.x * timeStep
             body.velocity.y += diff.y * timeStep
-
         }
-        body.position.x += body.velocity.x * timeStep
-        body.position.y += body.velocity.y * timeStep
-        body.angle += body.angularVelocity * timeStep
+
         body.angularVelocity *= rotationalAirDrag
         body.velocity.x *= linearAirDrag
         body.velocity.y *= linearAirDrag
-        body.updateVertices()
-        body.healthCheck()
+
+        body.positionalCorrection.x = 0
+        body.positionalCorrection.y = 0
     }
+
     pairs = generatePairs()
     for (let i = 0; i < velocityIterations; i++)
         solveVelocities(pairs)
     for (let i = 0; i < positionalIterations; i++)
         solvePositions(pairs)
+
     // let netPenetration = pairs.map(x => Math.max(0, -x.info.separation)).reduce((a, b) => a + b)
     // console.log("Net penetration: " + netPenetration.toFixed(2))
+
+    for (let body of bodies) {
+        if (body.isStatic)
+                continue
+        body.position.x += body.velocity.x * timeStep
+        body.position.y += body.velocity.y * timeStep
+        body.angle += body.angularVelocity * timeStep
+        body.updateVertices()
+        body.healthCheck()
+    }
 }
 
 type Pair = { bodyA: Body, bodyB: Body, info: CollisionInfo }
@@ -204,16 +229,16 @@ function solvePositions(pairs: Pair[]) {
         if ( !bodyA.isStatic ) {
             bodyA.position.x -= normal.x * displacementA
             bodyA.position.y -= normal.y * displacementA
-            // bodyA.positionalCorrection.x -= normal.x * displacementA
-            // bodyA.positionalCorrection.y -= normal.y * displacementA
+            bodyA.positionalCorrection.x -= normal.x * displacementA
+            bodyA.positionalCorrection.y -= normal.y * displacementA
             bodyA.updateVertices()
         }
 
         if ( !bodyB.isStatic ) {
             bodyB.position.x += normal.x * displacementB
             bodyB.position.y += normal.y * displacementB
-            // bodyB.positionalCorrection.x += normal.x * displacementB
-            // bodyB.positionalCorrection.y += normal.y * displacementB
+            bodyB.positionalCorrection.x += normal.x * displacementB
+            bodyB.positionalCorrection.y += normal.y * displacementB
             bodyB.updateVertices()
         }
 
