@@ -5,14 +5,14 @@ import { Vector } from "../math/Vector"
 // If calculating bounds is slow, it should be cached on the provider because it is called 2-3 times per body here.
 export interface IBroadphaseEntry { getBounds: () => AABB, id: number }
 export default class Broadphase {
-    static findPairs<T extends IBroadphaseEntry>( bodies: T[], width: number, height: number, cellSize: number, callback: (a: T, b: T) => void ) {
+    static findPairs<T extends IBroadphaseEntry>( bodies: T[], width: number, height: number, cellSize: number, callback: ( a: T, b: T ) => void ) {
         let gridWidth = Math.ceil( width / cellSize )
         let gridHeight = Math.ceil( height / cellSize )
         type GridCell = T[]
         const grid: GridCell[] = []
         for ( let i = 0; i < gridWidth * gridHeight; i++ )
             grid.push( [] )
-    
+
         // Place bodies in grid.
         for ( let body of bodies ) {
             // This is slightly incorrect since it will place bodies outside the grid on the boundary of the grid.
@@ -30,9 +30,9 @@ export default class Broadphase {
                 }
             }
         }
-    
+
         let visitedPairs = new Set<number>()
-    
+
         // Iterate over grid to generate pairs.
         for ( let i = 0; i < gridWidth; i++ ) {
             for ( let j = 0; j < gridHeight; j++ ) {
@@ -45,9 +45,9 @@ export default class Broadphase {
                         let bodyB = gridCell[ iBodyB ]
 
                         let boundsB = bodyB.getBounds()
-                        if (!boundsA.overlaps(boundsB))
+                        if ( !boundsA.overlaps( boundsB ) )
                             continue
-    
+
                         // Check if pair has been visited.
                         let minId = Math.min( bodyA.id, bodyB.id )
                         let maxId = Math.max( bodyA.id, bodyB.id )
@@ -55,12 +55,12 @@ export default class Broadphase {
                         if ( visitedPairs.has( pairKey ) ) continue
                         visitedPairs.add( pairKey )
 
-                        callback(bodyA, bodyB)
+                        callback( bodyA, bodyB )
                     }
                 }
-    
+
             }
         }
-    
+
     }
 }

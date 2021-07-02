@@ -1,6 +1,8 @@
 import Clock from "../Clock"
+import Broadphase from "../collision/Broadphase"
 import { initCanvas, notQuiteInfiniteMass } from "../common"
 import Input from "../Input"
+import AABB from "../math/AABB"
 import { clamp } from "../math/math"
 import { Vector } from "../math/Vector"
 
@@ -22,6 +24,12 @@ class Body {
         this.color = args.color ?? "red"
         this.id = Body.idCounter++
         // this.color = "#" + ( ( Math.random() * 16 ** 6 ) | 0 ).toString( 16 ).padStart( 6, "0" )
+    }
+    getBounds() {
+        return new AABB(
+            this.pos.x - this.radius, this.pos.y - this.radius,
+            this.pos.x + this.radius, this.pos.y + this.radius
+        )
     }
 }
 
@@ -186,9 +194,9 @@ function solveVelocities( pairs: Collision[] ) {
         let velB = bodyB?.vel ?? new Vector( 0, 0 )
 
         // See impulse formula here https://www.randygaul.net/2013/03/27/game-physics-engine-part-1-impulse-resolution/
-        let combinedEffectiveMass = 1 / (1 / massA + 1 / massB)
-        let velBA = velB.subtract(velA)
-        let impulse = velBA.dot(normal) * ( 1 + restitution ) * combinedEffectiveMass
+        let combinedEffectiveMass = 1 / ( 1 / massA + 1 / massB )
+        let velBA = velB.subtract( velA )
+        let impulse = velBA.dot( normal ) * ( 1 + restitution ) * combinedEffectiveMass
 
         if ( impulse > 0 ) continue
 
@@ -228,68 +236,12 @@ function generateCollisions() {
         }
     }
 
-    generatePairCollisions( result, bodies, { pos: new Vector( 0, 0 ), size: new Vector( canvas.width, canvas.height ) }, gridCellSize )
+    Broadphase.findPairs( bodies, canvas.width, canvas.height, gridCellSize, ( bodyA, bodyB ) => {
+        let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
+        if ( penetration() < 0 ) return
+        let normal = bodyB.pos.subtract( bodyA.pos ).unit()
+        result.push( { bodyA, bodyB, normal, penetration } )
+    } )
 
     return result
 }
-
-function generatePairCollisions( pairs: Collision[], bodies: Body[], box: { pos: Vector, size: Vector }, cellSize: number ) {
-    let gridWidth = Math.ceil( canvas.width / cellSize )
-    let gridHeight = Math.ceil( canvas.height / cellSize )
-    type GridCell = Body[]
-    const grid: GridCell[] = []
-    for ( let i = 0; i < gridWidth * gridHeight; i++ )
-        grid.push( [] )
-
-    // Place bodies in grid.
-    for ( let body of bodies ) {
-        let { pos, radius: r } = body
-        let { x, y } = pos
-        // This is slightly incorrect since it will place bodies outside the grid on the boundary of the grid.
-        // However this has the benefit of ensuring all bodies will be covered by collision detection.
-        // TODO: Come up with a cleaner solution. Maybe implement chunks and generate chunks adaptively rather than going off of screen dimensions.
-        let i1 = clamp( 0, gridWidth - 1, Math.floor( ( x - r ) / cellSize ) )
-        let i2 = clamp( 0, gridWidth - 1, Math.floor( ( x + r ) / cellSize ) )
-        let j1 = clamp( 0, gridHeight - 1, Math.floor( ( y - r ) / cellSize ) )
-        let j2 = clamp( 0, gridHeight - 1, Math.floor( ( y + r ) / cellSize ) )
-        for ( let i = i1; i <= i2; i++ ) {
-            for ( let j = j1; j <= j2; j++ ) {
-                let cellIndex = i * gridHeight + j
-                grid[ cellIndex ].push( body )
-            }
-        }
-    }
-
-    let visitedPairs = new Set<number>()
-
-    // Iterate over grid to generate pairs.
-    for ( let i = 0; i < gridWidth; i++ ) {
-        for ( let j = 0; j < gridHeight; j++ ) {
-            let cellIndex = i * gridHeight + j
-
-            let gridCell = grid[ cellIndex ]
-            for ( let iBodyA = 0; iBodyA < gridCell.length; iBodyA++ ) {
-                let bodyA = gridCell[ iBodyA ]
-                for ( let iBodyB = iBodyA + 1; iBodyB < gridCell.length; iBodyB++ ) {
-                    let bodyB = gridCell[ iBodyB ]
-
-                    let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
-                    if ( penetration() < 0 ) continue
-
-                    let minId = Math.min( bodyA.id, bodyB.id )
-                    let maxId = Math.max( bodyA.id, bodyB.id )
-                    let pairKey = ( maxId << 16 ) | minId
-
-                    if ( visitedPairs.has( pairKey ) ) continue
-                    visitedPairs.add( pairKey )
-
-                    let normal = bodyB.pos.subtract( bodyA.pos ).unit()
-                    pairs.push( { bodyA, bodyB, normal, penetration } )
-                }
-            }
-
-        }
-    }
-
-}
-
