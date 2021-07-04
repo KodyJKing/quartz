@@ -27,7 +27,7 @@ const linearAirDrag = 1 // .99
 const positionalDamping = .25
 const positionalIterations = 10
 const velocityIterations = 10
-const restitution = 0.1
+const restitution = 0.5
 const minBounceVelocity = 0 // 400
 const wallThickness = 80
 
@@ -119,14 +119,22 @@ function addRandomShapes() {
 
 // addStack()
 function addStack() {
-    for ( let i = 0; i < 10; i++ ) {
-        for ( let j = 0; j < 10; j++ ) {
-            let size = 60
-            let mass = size ** 2 / ( 50 * 50 )
-            let inertia = mass * size ** 2 / 4
+    let size = 60
+    let mass = size ** 2 / ( 50 * 50 )
+    let inertia = mass * size ** 2 / 4
+
+    let columnPadding = 10
+    let columns = 7
+    let rows = 7
+    let width = ( size + columnPadding ) * columns
+
+    for ( let i = 0; i < rows; i++ ) {
+        for ( let j = 0; j < columns; j++ ) {
             bodies.push( new Body( {
                 model: boxPolygon( size, size ),
-                position: new Vector( canvas.width / 2 + j * ( size + .2 ), canvas.height - wallThickness / 2 - size / 2 - i * size ),
+                position: new Vector(
+                    canvas.width / 2 + j * ( size + columnPadding ) - width / 2,
+                    canvas.height - wallThickness / 2 - size / 2 - i * size ),
                 mass, inertia,
                 color: randomColor()
             } ) )
