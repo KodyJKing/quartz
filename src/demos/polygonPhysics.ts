@@ -21,14 +21,8 @@ const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 
 
 const timeStep = 1 / 120
 const gravity = 2000
-const coefficientOfFriction = 0 // .1
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1 // .99
-const positionalDamping = .25
-const positionalIterations = 10
-const velocityIterations = 10
-const restitution = 0.1
-const minBounceVelocity = 0 // 400
 const wallThickness = 80
 
 const velocitySolverOptions = {
@@ -161,59 +155,6 @@ function mainLoop() {
     window.requestAnimationFrame( mainLoop )
 }
 
-function render() {
-    c.fillStyle = offWhite
-    c.fillRect( 0, 0, canvas.width, canvas.height )
-    c.lineWidth = 2
-    c.lineCap = "round"
-    c.lineJoin = "round"
-
-    for ( let body of bodies ) {
-        if ( !toggleFlag ) {
-            polygonPath( c, body.vertices )
-            c.fillStyle = body.color; c.fill()
-        }
-        polygonPath( c, body.vertices, -2 )
-        // c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .025 ).toString()
-        c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .05 ).toString()
-        c.stroke()
-
-        // let p = body.position
-        // c.beginPath()
-        // c.arc( p.x, p.y, 4, 0, Math.PI * 2 )
-        // c.fillStyle = "blue"; c.fill()
-
-        // let h = Vector.polar( body.angle, 20 )
-        // c.beginPath()
-        // c.moveTo( p.x, p.y )
-        // c.lineTo( p.x + h.x, p.y + h.y )
-        // c.strokeStyle = offWhite; c.stroke()
-    }
-
-    // for ( let pair of pairs ) {
-    //     let n = pair.info.normal.scale( 5 )
-    //     for ( let p of pair.info.contact ) {
-    //         c.beginPath()
-    //         c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
-    //         c.fillStyle = offWhite; c.fill()
-    //         c.beginPath()
-    //         c.moveTo( p.x - n.x, p.y - n.y )
-    //         c.lineTo( p.x + n.x, p.y + n.y )
-    //         c.strokeStyle = "rgba(255, 255, 255, .5)"
-    //         c.stroke()
-    //     }
-    // }
-
-    // let m = input.cursor
-    // c.beginPath()
-    // c.arc( m.x, m.y, 50, 0, Math.PI * 2 )
-    // c.strokeStyle = "red"; c.stroke()
-
-    c.fillStyle = "red"
-    c.font = "24px Impact"
-    c.fillText( clock.averageFPS.toFixed( 2 ), 0 + 2, 20 + 2 )
-}
-
 function update() {
     for ( let body of bodies ) {
         if ( body.isStatic )
@@ -255,4 +196,57 @@ function update() {
 
     for ( let body of bodies )
         body.updatePosition( timeStep )
+}
+
+function render() {
+    c.fillStyle = offWhite
+    c.fillRect( 0, 0, canvas.width, canvas.height )
+    c.lineWidth = 2
+    c.lineCap = "round"
+    c.lineJoin = "round"
+
+    for ( let body of bodies ) {
+        if ( !toggleFlag ) {
+            polygonPath( c, body.vertices )
+            c.fillStyle = body.color; c.fill()
+        }
+        polygonPath( c, body.vertices, -2 )
+        // c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .025 ).toString()
+        c.strokeStyle = body.outlineColor
+        c.stroke()
+
+        // let p = body.position
+        // c.beginPath()
+        // c.arc( p.x, p.y, 4, 0, Math.PI * 2 )
+        // c.fillStyle = "blue"; c.fill()
+
+        // let h = Vector.polar( body.angle, 20 )
+        // c.beginPath()
+        // c.moveTo( p.x, p.y )
+        // c.lineTo( p.x + h.x, p.y + h.y )
+        // c.strokeStyle = offWhite; c.stroke()
+    }
+
+    // for ( let pair of pairs ) {
+    //     let n = pair.info.normal.scale( 5 )
+    //     for ( let p of pair.info.contact ) {
+    //         c.beginPath()
+    //         c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
+    //         c.fillStyle = offWhite; c.fill()
+    //         c.beginPath()
+    //         c.moveTo( p.x - n.x, p.y - n.y )
+    //         c.lineTo( p.x + n.x, p.y + n.y )
+    //         c.strokeStyle = "rgba(255, 255, 255, .5)"
+    //         c.stroke()
+    //     }
+    // }
+
+    // let m = input.cursor
+    // c.beginPath()
+    // c.arc( m.x, m.y, 50, 0, Math.PI * 2 )
+    // c.strokeStyle = "red"; c.stroke()
+
+    c.fillStyle = "red"
+    c.font = "24px Impact"
+    c.fillText( clock.averageFPS.toFixed( 2 ), 0 + 2, 20 + 2 )
 }

@@ -1,12 +1,13 @@
 
-// import Vector from "../Vector"
+// import Vector from "../math/Vector"
 // import SupportFunction from "./SupportFunction"
 
-
-// export default function GJK( support: SupportFunction, simplices?: Vector[][], maxIterations = 100, initialHeading = Vector2.RIGHT ) {
+// export default function GJK( support: SupportFunction, simplices?: Vector[][], maxIterations = 100, initialHeading = Vector.right ) {
 //     let initialPoint = support( initialHeading )
-//     let heading = initialPoint.scale(-1)
+//     let heading = initialPoint.scale( -1 )
 //     let simplex: Vector[] = [ initialPoint ]
+
+//     let a: Vector, b: Vector, c: Vector
 
 //     function checkAndUpdateSimplex() {
 //         if ( simplices )
@@ -20,7 +21,7 @@
 //             }
 
 //             case 2: {
-//                 let [ b, a ] = simplex
+//                 [ b, a ] = simplex
 //                 let ab = b.subtract( a )
 //                 let ao = a.scale( -1 )
 //                 if ( ab.dot( ao ) < 0 ) {
@@ -34,7 +35,7 @@
 //             }
 
 //             case 3: {
-//                 let [ c, b, a ] = simplex
+//                 [ c, b, a ] = simplex
 //                 let ab = b.subtract( a )
 //                 let ac = c.subtract( a )
 //                 let ao = a.negate()

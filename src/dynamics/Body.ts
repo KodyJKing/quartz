@@ -1,4 +1,5 @@
 import { notQuiteInfiniteMass } from "../common"
+import Color, { Colors } from "../graphics/Color"
 import AABB from "../math/AABB"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
@@ -15,6 +16,7 @@ export default class Body {
     inertia: number
     isStatic: boolean
     color: string
+    outlineColor: string
     id: number
     positionalCorrection: Vector
     static idCounter = 0
@@ -37,6 +39,7 @@ export default class Body {
         this.vertices = this.transformedVertices()
         this.bounds = AABB.polygonBounds( this.vertices )
         this.color = args.color ?? "grey"
+        this.outlineColor = Color.parse( this.color ).lerp( Colors.black, .05 ).toString()
         this.id = Body.idCounter++
         this.positionalCorrection = new Vector( 0, 0 )
     }
