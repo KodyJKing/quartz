@@ -27,7 +27,7 @@ const linearAirDrag = 1 // .99
 const positionalDamping = .25
 const positionalIterations = 10
 const velocityIterations = 10
-const restitution = 0.5
+const restitution = 0.1
 const minBounceVelocity = 0 // 400
 const wallThickness = 80
 
