@@ -21,7 +21,7 @@ const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 
 
 const timeStep = 1 / 120
 const gravity = 2000
-const coefficientOfFriction = .1
+const coefficientOfFriction = 0 // .1
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1 // .99
 const positionalDamping = .25
@@ -49,21 +49,51 @@ const bodies: Body[] = [
         isStatic: true,
         color: offWhiteDarker
     } ),
+    // new Body( {
+    //     model: boxPolygon( canvas.width, wallThickness ),
+    //     position: new Vector( canvas.width / 2, 0 ),
+    //     isStatic: true,
+    //     color: offWhiteDarker
+    // } ),
+    // new Body( {
+    //     model: boxPolygon( wallThickness, canvas.height ),
+    //     position: new Vector( canvas.width, canvas.height / 2 ),
+    //     isStatic: true,
+    //     color: offWhiteDarker
+    // } ),
+    // new Body( {
+    //     model: boxPolygon( wallThickness, canvas.height ),
+    //     position: new Vector( 0, canvas.height / 2 ),
+    //     isStatic: true,
+    //     color: offWhiteDarker
+    // } ),
     new Body( {
-        model: boxPolygon( canvas.width, wallThickness ),
-        position: new Vector( canvas.width / 2, 0 ),
+        model: polygon( 50, 100 ),
+        position: new Vector( canvas.width / 2, canvas.height / 4 ),
         isStatic: true,
         color: offWhiteDarker
     } ),
     new Body( {
-        model: boxPolygon( wallThickness, canvas.height ),
-        position: new Vector( canvas.width, canvas.height / 2 ),
+        model: polygon( 50, 100 ),
+        position: new Vector( canvas.width / 2 - 200, canvas.height / 2 ),
         isStatic: true,
         color: offWhiteDarker
     } ),
     new Body( {
-        model: boxPolygon( wallThickness, canvas.height ),
-        position: new Vector( 0, canvas.height / 2 ),
+        model: polygon( 50, 100 ),
+        position: new Vector( canvas.width / 2 + 200, canvas.height / 2 ),
+        isStatic: true,
+        color: offWhiteDarker
+    } ),
+    new Body( {
+        model: polygon( 50, 100 ),
+        position: new Vector( 0, canvas.height ),
+        isStatic: true,
+        color: offWhiteDarker
+    } ),
+    new Body( {
+        model: polygon( 50, 100 ),
+        position: new Vector( canvas.width, canvas.height ),
         isStatic: true,
         color: offWhiteDarker
     } ),
@@ -71,13 +101,13 @@ const bodies: Body[] = [
 
 addRandomShapes()
 function addRandomShapes() {
-    for ( let i = 0; i < 100; i++ ) {
-        let radius = 50 // (40 + (Math.random() - .5) * 20)
+    for ( let i = 0; i < 400; i++ ) {
+        let radius = 30 // (40 + (Math.random() - .5) * 20)
         let mass = radius ** 2 / ( 50 * 50 )
-        let inertia = mass * radius ** 2
+        let inertia = mass * radius ** 2 * .5
         bodies.push( new Body( {
             model: polygon( Math.floor( Math.random() * 6 ) + 3, radius ),
-            // model: polygon(6, radius),
+            // model: polygon( 5, radius ),
             position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
             angularVelocity: ( Math.random() - .5 ) * 100,
             velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 2000 ),
@@ -89,14 +119,14 @@ function addRandomShapes() {
 
 // addStack()
 function addStack() {
-    for ( let i = 0; i < 7; i++ ) {
-        for ( let j = 0; j < 1; j++ ) {
+    for ( let i = 0; i < 10; i++ ) {
+        for ( let j = 0; j < 10; j++ ) {
             let size = 60
             let mass = size ** 2 / ( 50 * 50 )
-            let inertia = mass * size ** 2
+            let inertia = mass * size ** 2 / 4
             bodies.push( new Body( {
                 model: boxPolygon( size, size ),
-                position: new Vector( canvas.width / 2 + j * ( size + 1 ), canvas.height - wallThickness / 2 - size / 2 - i * size ),
+                position: new Vector( canvas.width / 2 + j * ( size + .2 ), canvas.height - wallThickness / 2 - size / 2 - i * size ),
                 mass, inertia,
                 color: randomColor()
             } ) )
@@ -130,7 +160,7 @@ function render() {
         // let p = body.position
         // c.beginPath()
         // c.arc( p.x, p.y, 4, 0, Math.PI * 2 )
-        // c.fillStyle = offWhite; c.fill()
+        // c.fillStyle = "blue"; c.fill()
 
         // let h = Vector.polar( body.angle, 20 )
         // c.beginPath()
@@ -152,6 +182,11 @@ function render() {
     //         c.stroke()
     //     }
     // }
+
+    // let m = input.cursor
+    // c.beginPath()
+    // c.arc( m.x, m.y, 50, 0, Math.PI * 2 )
+    // c.strokeStyle = "red"; c.stroke()
 
     c.fillStyle = "red"
     c.font = "24px Impact"
@@ -179,6 +214,16 @@ function update() {
 
         body.positionalCorrection.x = 0
         body.positionalCorrection.y = 0
+
+        let { x } = body.position
+        let { width } = canvas
+        let marigin = 80
+        if ( x < -marigin || x > width + marigin ) {
+            body.position.y = -200
+            body.position.x = width / 2
+            body.velocity.x = 0
+            body.velocity.y = 0
+        }
     }
 
     pairs = generatePairs()
