@@ -8,8 +8,8 @@ export default function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
     let maxDist = -Infinity
     function maxSeperationAxisSingle( poly: Vector[], otherSupport: SupportFunction, sign: number ) {
         for ( let i = 0; i < poly.length; i++ ) {
-            i = modulus( i,  poly.length )
-            let j = modulus( i + 1,  poly.length )
+            i = modulus( i, poly.length )
+            let j = modulus( i + 1, poly.length )
             let pt_i = poly[ i ], pt_j = poly[ j ]
             let normal = pt_j.subtract( pt_i ).leftNormal().unit() // Inward normal
             let dist = pt_i.dot( normal ) - otherSupport( normal ).dot( normal )
@@ -29,23 +29,24 @@ export default function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
 
     let aUpper = supportA( normalLow )
     let aLower = supportA( normalHigh )
-    let bUpper = supportB(normalHigh.negate() )
-    let bLower = supportB(normalLow.negate() )
+    let bUpper = supportB( normalHigh.negate() )
+    let bLower = supportB( normalLow.negate() )
 
     let tangent = maxNormal.rightNormal()
-    let upperExtent = Math.min(aUpper.dot(tangent), bUpper.dot(tangent))
-    let lowerExtent = Math.max(aLower.dot(tangent), bLower.dot(tangent))
+    let upperExtent = Math.min( aUpper.dot( tangent ), bUpper.dot( tangent ) )
+    let lowerExtent = Math.max( aLower.dot( tangent ), bLower.dot( tangent ) )
 
-    let aUpperContact = aUpper.clampAlongAxis(tangent, lowerExtent, upperExtent)
-    let aLowerContact = aLower.clampAlongAxis(tangent, lowerExtent, upperExtent)
-    let bUpperContact = bUpper.clampAlongAxis(tangent, lowerExtent, upperExtent)
-    let bLowerContact = bLower.clampAlongAxis(tangent, lowerExtent, upperExtent)
+    let aUpperContact = aUpper.clampAlongAxis( tangent, lowerExtent, upperExtent )
+    let aLowerContact = aLower.clampAlongAxis( tangent, lowerExtent, upperExtent )
+    let bUpperContact = bUpper.clampAlongAxis( tangent, lowerExtent, upperExtent )
+    let bLowerContact = bLower.clampAlongAxis( tangent, lowerExtent, upperExtent )
 
-    let upperContact = aUpperContact.lerp(bUpperContact, .5)
-    let lowerContact = aLowerContact.lerp(bLowerContact, .5)
+    let upperContact = aUpperContact.lerp( bUpperContact, .5 )
+    let lowerContact = aLowerContact.lerp( bLowerContact, .5 )
 
-    let contacts = (upperExtent - lowerExtent) < 1 ? [upperContact] : [upperContact, lowerContact]
-    // let contacts = [upperContact.lerp(lowerContact, .5)]
+
+    let contacts = ( upperExtent - lowerExtent ) < 1 ? [ upperContact ] : [ upperContact.lerp( lowerContact, .5 ), upperContact, lowerContact ]
+    // let contacts = ( upperExtent - lowerExtent ) < 1 ? [ upperContact ] : [ upperContact, lowerContact ]
 
     return {
         normal: maxNormal,
