@@ -150,8 +150,10 @@ function render() {
     c.lineJoin = "round"
 
     for ( let body of bodies ) {
-        polygonPath( c, body.vertices )
-        c.fillStyle = body.color; c.fill()
+        if ( !toggleFlag ) {
+            polygonPath( c, body.vertices )
+            c.fillStyle = body.color; c.fill()
+        }
         polygonPath( c, body.vertices, -2 )
         // c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .025 ).toString()
         c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .05 ).toString()
@@ -228,7 +230,7 @@ function update() {
 
     pairs = generatePairs()
     let velocitySolverOptions = { minBounceVelocity, restitution, coefficientOfFriction }
-    let positionalSolverOptions = { positionalDamping, updateGeometryAndCollision: toggleFlag }
+    let positionalSolverOptions = { positionalDamping }
     for ( let i = 0; i < velocityIterations; i++ )
         solveVelocities( pairs, velocitySolverOptions )
     for ( let i = 0; i < positionalIterations; i++ )

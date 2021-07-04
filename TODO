@@ -3,7 +3,7 @@
         - Option 1: If both bodies haven't moved much, than just assume their current contacts correspond to last frame's contacts.
         - Option 2: Use some kind of per contact proximity matching. 
     - Option 2: Instead store the warming impulse on the body. 
-        - To avoid bodies jumping when a load is removed, we would need to project the warming impulse to the bodies current constraint's span.
+        - To avoid bodies jumping when a load is removed, we would need to project the warming impulse to the body's current constraint's span.
 
 - Implement more realistic and stable friction. Support static friction.
 

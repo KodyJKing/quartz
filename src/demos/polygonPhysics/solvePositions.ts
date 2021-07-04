@@ -2,10 +2,10 @@ import SAT from "../../collision/SAT"
 import { Pair } from "./polygonPhysics"
 
 export function solvePositions(
-    pairs: Pair[], options: { positionalDamping: number, updateGeometryAndCollision: boolean }
+    pairs: Pair[], options: { positionalDamping: number }
 ) {
     // TODO: Try implementing per contact solving, with angular displacements. Also try solving both contacts simultaneously.
-    let { positionalDamping, updateGeometryAndCollision } = options
+    let { positionalDamping } = options
     for ( let pair of pairs ) {
         let { bodyA, bodyB, info } = pair
         let { normal, separation } = info
@@ -16,9 +16,7 @@ export function solvePositions(
         let massA = bodyA.mass
         let massB = bodyB.mass
 
-        let correctedDisplacement = 0
-        if ( !updateGeometryAndCollision )
-            correctedDisplacement = normal.dot( bodyB.positionalCorrection.subtract( bodyA.positionalCorrection ) )
+        let correctedDisplacement = normal.dot( bodyB.positionalCorrection.subtract( bodyA.positionalCorrection ) )
 
         let displacement = ( -separation - correctedDisplacement ) * positionalDamping
         let massRatio = massB / massA
@@ -30,8 +28,6 @@ export function solvePositions(
             bodyA.position.y -= normal.y * displacementA
             bodyA.positionalCorrection.x -= normal.x * displacementA
             bodyA.positionalCorrection.y -= normal.y * displacementA
-            if ( updateGeometryAndCollision )
-                bodyA.updateVertices()
         }
 
         if ( !bodyB.isStatic ) {
@@ -39,11 +35,7 @@ export function solvePositions(
             bodyB.position.y += normal.y * displacementB
             bodyB.positionalCorrection.x += normal.x * displacementB
             bodyB.positionalCorrection.y += normal.y * displacementB
-            if ( updateGeometryAndCollision )
-                bodyB.updateVertices()
         }
 
-        if ( updateGeometryAndCollision )
-            pair.info = SAT( bodyA.vertices, bodyB.vertices )
     }
 }
