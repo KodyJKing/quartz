@@ -4,7 +4,7 @@ import { initCanvas, notQuiteInfiniteMass } from "../common"
 import Input from "../Input"
 import AABB from "../math/AABB"
 import { clamp } from "../math/math"
-import { Vector } from "../math/Vector"
+import Vector from "../math/Vector"
 
 class Body {
     pos: Vector

@@ -1,5 +1,5 @@
 import { modulus } from "./math/math"
-import { Vector } from "./math/Vector"
+import Vector from "./math/Vector"
 
 export const notQuiteInfiniteMass = 1e+32
 

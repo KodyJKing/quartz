@@ -3,7 +3,7 @@ import SAT from "../collision/SAT"
 import { initCanvas, polygon, polygonPath } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
-import { Vector } from "../math/Vector"
+import Vector from "../math/Vector"
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -62,7 +62,7 @@ function render() {
 
     c.globalAlpha = 1
 
-    for ( let v of contactInfo.contact) {
+    for ( let v of contactInfo.contact ) {
         c.beginPath()
         c.arc( v.x, v.y, 4, 0, Math.PI * 2 )
         c.fillStyle = colorPalette[ 1 ]

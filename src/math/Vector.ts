@@ -1,6 +1,6 @@
 import { clamp, equals } from "./math"
 
-export class Vector {
+export default class Vector {
     x: number
     y: number
     static zero = new Vector( 0, 0 )
@@ -31,18 +31,18 @@ export class Vector {
     subtract( other: Vector ) { return new Vector( this.x - other.x, this.y - other.y ) }
     dot( other: Vector ) { return this.x * other.x + this.y * other.y }
     cross( other: Vector ) { return this.x * other.y - this.y * other.x }
-    crossZLeft(z: number) { return new Vector(- this.y * z, this.x * z) }
-    crossZRight(z: number) { return new Vector(this.y * z, - this.x * z) }
+    crossZLeft( z: number ) { return new Vector( - this.y * z, this.x * z ) }
+    crossZRight( z: number ) { return new Vector( this.y * z, - this.x * z ) }
     scale( scale: number ) { return new Vector( this.x * scale, this.y * scale ) }
     stretch( x: number, y: number ) { return new Vector( this.x * x, this.y * y ) }
     divide( divisor: number ) { return new Vector( this.x / divisor, this.y / divisor ) }
     lerp( other: Vector, t: number ) { return this.scale( 1 - t ).add( other.scale( t ) ) }
 
-    clampAlongAxis(axis: Vector, min, max) {
-        let projection = this.dot(axis)
-        let clampedProjection = clamp(min, max, projection)
+    clampAlongAxis( axis: Vector, min, max ) {
+        let projection = this.dot( axis )
+        let clampedProjection = clamp( min, max, projection )
         let diff = clampedProjection - projection
-        return this.add(axis.scale(diff))
+        return this.add( axis.scale( diff ) )
     }
 
     distance( other: Vector ) { return Math.sqrt( ( this.x - other.x ) ** 2 + ( this.y - other.y ) ** 2 ) }

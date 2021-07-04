@@ -1,13 +1,13 @@
 import Clock from "../../Clock"
-import Broadphase from "../../collision/Broadphase"
-import SAT, { CollisionInfo } from "../../collision/SAT"
+import getCollisionPairs from "../../collision/getCollisionPairs"
+import Pair from "../../collision/Pair"
 import { boxPolygon, initCanvas, polygon, polygonPath } from "../../common"
+import Body from "../../dynamics/Body"
+import solvePositions from "../../dynamics/solvePositions"
+import solveVelocities from "../../dynamics/solveVelocities"
 import Color, { Colors } from "../../graphics/Color"
 import Input from "../../Input"
-import { Vector } from "../../math/Vector"
-import Body from "./Body"
-import { solvePositions } from "./solvePositions"
-import { solveVelocities } from "./solveVelocities"
+import Vector from "../../math/Vector"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -30,6 +30,17 @@ const velocityIterations = 10
 const restitution = 0.1
 const minBounceVelocity = 0 // 400
 const wallThickness = 80
+
+const velocitySolverOptions = {
+    iterations: 10,
+    minBounceVelocity: 0,
+    restitution: .1,
+    coefficientOfFriction: 0
+}
+const positionalSolverOptions = {
+    iterations: 10,
+    positionalDamping: .25
+}
 
 const broadphaseCellSize = 100
 
@@ -208,8 +219,13 @@ function update() {
         if ( body.isStatic )
             continue
 
-        if ( !input.mouse.get( 2 ) )
-            body.velocity.y += gravity * timeStep
+        body.updateVelocity( timeStep, gravity, rotationalAirDrag, linearAirDrag )
+
+        // Zero-gravity when right-clicking.
+        if ( input.mouse.get( 2 ) )
+            body.velocity.y -= gravity * timeStep
+
+        // Repel when left-clicking.
         if ( input.mouse.get( 0 ) ) {
             let diff = input.cursor.subtract( body.position )
             let length = Math.max( diff.length, 50 )
@@ -218,15 +234,9 @@ function update() {
             body.velocity.y += diff.y * timeStep
         }
 
-        body.angularVelocity *= rotationalAirDrag
-        body.velocity.x *= linearAirDrag
-        body.velocity.y *= linearAirDrag
-
-        body.positionalCorrection.x = 0
-        body.positionalCorrection.y = 0
-
-        let { x } = body.position
-        let { width } = canvas
+        // Reset bodies which are out of bounds.
+        let x = body.position.x
+        let width = canvas.width
         let marigin = 80
         if ( x < -marigin || x > width + marigin ) {
             body.position.y = -200
@@ -236,38 +246,13 @@ function update() {
         }
     }
 
-    pairs = generatePairs()
-    let velocitySolverOptions = { minBounceVelocity, restitution, coefficientOfFriction }
-    let positionalSolverOptions = { positionalDamping }
-    for ( let i = 0; i < velocityIterations; i++ )
-        solveVelocities( pairs, velocitySolverOptions )
-    for ( let i = 0; i < positionalIterations; i++ )
-        solvePositions( pairs, positionalSolverOptions )
+    pairs = getCollisionPairs( bodies, canvas.width, canvas.height, broadphaseCellSize )
+    solveVelocities( pairs, velocitySolverOptions )
+    solvePositions( pairs, positionalSolverOptions )
 
     // let netPenetration = pairs.map(x => Math.max(0, -x.info.separation)).reduce((a, b) => a + b)
     // console.log("Net penetration: " + netPenetration.toFixed(2))
 
-    for ( let body of bodies ) {
-        if ( body.isStatic )
-            continue
-        body.position.x += body.velocity.x * timeStep
-        body.position.y += body.velocity.y * timeStep
-        body.angle += body.angularVelocity * timeStep
-        body.updateVertices()
-        body.healthCheck()
-    }
-}
-
-export type Pair = { bodyA: Body, bodyB: Body, info: CollisionInfo }
-function generatePairs() {
-    let pairs: Pair[] = []
-    Broadphase.findPairs(
-        bodies, canvas.width, canvas.height, broadphaseCellSize,
-        ( bodyA, bodyB ) => {
-            let info = SAT( bodyA.vertices, bodyB.vertices )
-            if ( info.separation <= 0 )
-                pairs.push( { bodyA, bodyB, info } )
-        }
-    )
-    return pairs
+    for ( let body of bodies )
+        body.updatePosition( timeStep )
 }

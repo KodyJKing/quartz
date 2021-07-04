@@ -1,4 +1,4 @@
-import { Vector } from "./Vector"
+import Vector from "./Vector"
 
 const epsilon = 0.00001
 

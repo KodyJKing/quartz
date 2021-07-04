@@ -1,5 +1,5 @@
 
-// import {Vector} from "../Vector"
+// import Vector from "../Vector"
 // import SupportFunction from "./SupportFunction"
 
 

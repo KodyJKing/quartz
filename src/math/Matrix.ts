@@ -1,4 +1,4 @@
-import { Vector } from "./Vector"
+import Vector from "./Vector"
 
 const epsilon = 0.000001
 
@@ -28,7 +28,7 @@ export default class Matrix {
     determinant(): number { return determinant( this, Matrix ) }
     equals( other: Matrix ): boolean { return equals( this, other, epsilon, Matrix ) }
 
-    multiplyVec( v: Vector, z: number = 1, target = new Vector(0, 0) ) {
+    multiplyVec( v: Vector, z: number = 1, target = new Vector( 0, 0 ) ) {
         let {
             m11, m12, m13,
             m21, m22, m23,

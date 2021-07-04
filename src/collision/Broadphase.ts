@@ -1,6 +1,6 @@
 import AABB from "../math/AABB"
 import { clamp, contains } from "../math/math"
-import { Vector } from "../math/Vector"
+import Vector from "../math/Vector"
 
 // If calculating bounds is slow, it should be cached on the provider because it is called 2-3 times per body here.
 export interface IBroadphaseEntry { getBounds: () => AABB, id: number }
