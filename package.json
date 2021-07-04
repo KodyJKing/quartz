@@ -13,7 +13,8 @@
         "watch2:ava_serial": "ava --watch --verbose --serial --timeout=60m",
         "deploy": "npm-run-all deploy:*",
         "deploy:parcel-build": "parcel build --public-url ./ src/demos/index.html --out-dir build",
-        "deploy:push-gh-page": "push-dir --dir=build --branch=gg-pages --cleanup --verbose"
+        "deploy:push-gh-page": "push-dir --dir=build --branch=gg-pages --cleanup --verbose",
+        "deploy:cleanup": "rm -rf build"
     },
     "author": "Kody J King",
     "license": "MIT",
