@@ -20,9 +20,9 @@ const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 
 
 const timeStep = 1 / 120
 const gravity = 2000
-const coefficientOfFriction = 0
-const rotationalAirDrag = .99
-const linearAirDrag = .99
+const coefficientOfFriction = .1
+const rotationalAirDrag = 1 // .99
+const linearAirDrag = 1 // .99
 
 const positionalIterations = 10
 const positionalDamping = .25
@@ -97,12 +97,12 @@ addStack()
 function addStack() {
     let size = 80
     let rows = 10
-    let columns = 3
+    let columns = 1
     let width = columns * ( size + 1 )
     for ( let i = 0; i < rows; i++ ) {
         for ( let j = 0; j < columns; j++ ) {
             let mass = size ** 2 / ( 50 * 50 )
-            let inertia = mass * size ** 2 * .5
+            let inertia = mass * size ** 2 * .25
             bodies.push( new Body( {
                 model: boxPolygon( size, size ),
                 // model: polygon( 6, size / 2 ),
@@ -138,31 +138,32 @@ function render() {
             c.stroke()
         }
 
-        // let p = body.position
-        // c.beginPath()
-        // c.arc( p.x, p.y, 4, 0, Math.PI * 2 )
-        // c.fillStyle = offWhite; c.fill()
+        let p = body.position
+        c.beginPath()
+        c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
+        c.fillStyle = "blue"; c.fill()
 
-        // let h = Vector.polar( body.angle, 20 )
-        // c.beginPath()
-        // c.moveTo( p.x, p.y )
-        // c.lineTo( p.x + h.x, p.y + h.y )
-        // c.strokeStyle = offWhite; c.stroke()
+        let h = Vector.polar( body.angle, 10 )
+        c.beginPath()
+        c.moveTo( p.x, p.y )
+        c.lineTo( p.x + h.x, p.y + h.y )
+        c.strokeStyle = "blue"; c.stroke()
     }
 
-    // for ( let pair of pairs ) {
-    //     let n = pair.info.normal.scale( 5 )
-    //     for ( let p of pair.info.contact ) {
-    //         c.beginPath()
-    //         c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
-    //         c.fillStyle = offWhite; c.fill()
-    //         c.beginPath()
-    //         c.moveTo( p.x - n.x, p.y - n.y )
-    //         c.lineTo( p.x + n.x, p.y + n.y )
-    //         c.strokeStyle = "rgba(255, 255, 255, .5)"
-    //         c.stroke()
-    //     }
-    // }
+    for ( let pair of pairs ) {
+        let n = pair.info.normal.scale( 5 )
+        for ( let contact of pair.info.contact ) {
+            let p = contact.point
+            c.beginPath()
+            c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
+            c.fillStyle = "blue"; c.fill()
+            c.beginPath()
+            c.moveTo( p.x - n.x, p.y - n.y )
+            c.lineTo( p.x + n.x, p.y + n.y )
+            c.strokeStyle = "rgba(0, 0, 255, .5)"
+            c.stroke()
+        }
+    }
 
     c.fillStyle = "red"
     c.font = "24px Impact"
