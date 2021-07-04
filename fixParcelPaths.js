@@ -21,8 +21,6 @@ function fixFile( filePath ) {
     let text = fs.readFileSync( filePath, { encoding: "utf8" } )
     let fixed = text.replace( /src="\//g, 'src="./' ).replace( /href="\//g, 'href="./' )
     fs.writeFileSync( filePath, fixed )
-    // console.log( "\n\n=================================" )
-    // console.log( fixed )
 }
 
 for ( let file of files ) {

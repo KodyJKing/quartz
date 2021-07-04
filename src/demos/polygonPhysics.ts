@@ -1,13 +1,13 @@
-import Clock from "../../Clock"
-import getCollisionPairs from "../../collision/getCollisionPairs"
-import Pair from "../../collision/Pair"
-import { boxPolygon, initCanvas, polygon, polygonPath } from "../../common"
-import Body from "../../dynamics/Body"
-import solvePositions from "../../dynamics/solvePositions"
-import solveVelocities from "../../dynamics/solveVelocities"
-import Color, { Colors } from "../../graphics/Color"
-import Input from "../../Input"
-import Vector from "../../math/Vector"
+import Clock from "../Clock"
+import getCollisionPairs from "../collision/getCollisionPairs"
+import Pair from "../collision/Pair"
+import { boxPolygon, initCanvas, polygon, polygonPath } from "../common"
+import Body from "../dynamics/Body"
+import solvePositions from "../dynamics/solvePositions"
+import solveVelocities from "../dynamics/solveVelocities"
+import Color, { Colors } from "../graphics/Color"
+import Input from "../Input"
+import Vector from "../math/Vector"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
