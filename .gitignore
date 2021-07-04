@@ -2,5 +2,6 @@
 /.parcel-cache
 /.vscode
 /dist
+/deploy
 /node_modules
 /lib

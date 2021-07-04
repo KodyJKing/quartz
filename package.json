@@ -6,21 +6,23 @@
     "scripts": {
         "watch1": "npm-run-all --parallel watch1:*",
         "watch2": "npm-run-all --parallel watch2:*",
-        "watch1:parcel": "parcel --public-url ./ src/demos/index.html",
+        "watch1:parcel": "parcel src/demos/index.html",
         "watch1:tsc": "tsc -w",
         "_watch:gtest": "nodemon --watch lib --exec yarn gtest lib",
         "_watch:ava": "ava --watch --verbose",
         "watch2:ava_serial": "ava --watch --verbose --serial --timeout=60m",
-        "push-gh-page": "push-dir --dir=dist --branch=gg-pages --cleanup --verbose"
+        "deploy": "npm-run-all deploy:*",
+        "deploy:parcel-build": "parcel build --public-url ./ src/demos/index.html --out-dir build",
+        "deploy:push-gh-page": "push-dir --dir=build --branch=gg-pages --cleanup --verbose"
     },
-    "author": "",
+    "author": "Kody J King",
     "license": "MIT",
     "devDependencies": {
         "@glas/test": "^1.0.4",
         "@types/node": "^15.12.5",
         "ava": "^3.15.0",
         "npm-run-all": "^4.1.5",
-        "parcel": "^2.0.0-beta.2",
+        "parcel-bundler": "^1.12.5",
         "push-dir": "^0.4.1",
         "typescript": "4.2.4"
     }
