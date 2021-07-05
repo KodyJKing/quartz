@@ -13,7 +13,9 @@ export default class Body {
     angle: number
     angularVelocity: number
     mass: number
+    invMass: number
     inertia: number
+    invInertia: number
     isStatic: boolean
     color: string
     outlineColor: string
@@ -35,7 +37,9 @@ export default class Body {
         this.angularVelocity = args.angularVelocity ?? 0
         this.isStatic = args.isStatic ?? false
         this.mass = this.isStatic ? notQuiteInfiniteMass : ( args.mass ?? 1 )
+        this.invMass = 1 / this.mass
         this.inertia = this.isStatic ? notQuiteInfiniteMass : ( args.inertia ?? 1 )
+        this.invInertia = 1 / this.inertia
         this.vertices = this.transformedVertices()
         this.bounds = AABB.polygonBounds( this.vertices )
         this.color = args.color ?? "grey"

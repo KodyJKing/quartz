@@ -15,6 +15,8 @@ export default class Vector {
     get lengthSquared() { return this.x * this.x + this.y * this.y }
     get angle() { return Math.atan2( this.y, this.x ) }
 
+    getLengthSquared() { return this.x * this.x + this.y * this.y }
+
     unit() { return this.scale( 1 / this.length ) }
     leftNormal() { return new Vector( -this.y, this.x ) }
     rightNormal() { return new Vector( this.y, -this.x ) }
@@ -87,4 +89,14 @@ export default class Vector {
     static polar( angle, length ) {
         return new Vector( Math.cos( angle ) * length, Math.sin( angle ) * length )
     }
+
+    // Allocation free operations for hotcode
+    set( x: number, y: number ) { this.x = x; this.y = y; return this }
+    hot_add( other: Vector, target: Vector ) { return target.set( this.x + other.x, this.y + other.y ) }
+    hot_subtract( other: Vector, target: Vector ) { return target.set( this.x - other.x, this.y - other.y ) }
+    hot_crossZLeft( z: number, target: Vector ) { return target.set( - this.y * z, this.x * z ) }
+    hot_crossZRight( z: number, target: Vector ) { return target.set( this.y * z, - this.x * z ) }
+    hot_scale( scale: number, target: Vector ) { return target.set( this.x * scale, this.y * scale ) }
+    hot_leftNormal( target: Vector ) { return target.set( -this.y, this.x ) }
+    hot_rightNormal( target: Vector ) { return target.set( this.y, -this.x ) }
 }
