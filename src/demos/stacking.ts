@@ -5,7 +5,6 @@ import { boxPolygon, initCanvas, polygon, polygonPath } from "../common"
 import Body from "../dynamics/Body"
 import solvePositions from "../dynamics/solvePositions"
 import solveVelocities from "../dynamics/solveVelocities"
-import Color, { Colors } from "../graphics/Color"
 import Input from "../Input"
 import Vector from "../math/Vector"
 
@@ -26,15 +25,18 @@ const linearAirDrag = 1 // .99
 const wallThickness = 80
 
 const velocitySolverOptions = {
-    iterations: 100,
+    iterations: 50,
     minBounceVelocity: 0,
-    restitution: .0,
+    restitution: .1,
     coefficientOfFriction: .2
 }
 const positionalSolverOptions = {
     iterations: 10,
     positionalDamping: .25
 }
+
+const linearMotionThreshold = .2
+const angularMotionThreshold = .001
 
 const broadphaseCellSize = 100
 
@@ -94,22 +96,20 @@ function addRandomShapes() {
 
 addStack()
 function addStack() {
-    let factor = 16 / 14
-
-    let boxWidth = 120 / factor
-    let boxHeight = 60 / factor
+    let boxWidth = 120 * .8
+    let boxHeight = 60 * .8
     let mass = boxWidth * boxHeight
     let inertia = mass * ( boxWidth ** 2 + boxHeight ** 2 ) / 12
 
-    let columnPadding = 1
-    let columns = 14 * factor
-    let rows = 14 * factor
+    let columnPadding = 0
+    let columns = 2
+    let rows = 16
     let stackWidth = ( boxWidth + columnPadding ) * columns
 
     for ( let i = 0; i < rows; i++ ) {
         for ( let j = 0; j < columns; j++ ) {
             let dx = i % 2 == 0 ? 0 : boxWidth / 2
-            let w = ( j == 0 && dx == 0 || j == columns - 1 && dx > 0 ) ? boxWidth / 2 : boxWidth
+            let w = ( j == 0 && dx == 0 || j == ( columns - 1 ) && dx > 0 ) ? boxWidth / 2 : boxWidth
             dx += ( w == boxWidth ) ? 0 : ( w / 2 ) * ( dx == 0 ? 1 : -1 )
 
             // dx = 0
@@ -164,7 +164,7 @@ function update() {
     solvePositions( pairs, positionalSolverOptions )
 
     for ( let body of bodies )
-        body.updatePosition( timeStep )
+        body.updatePosition( timeStep, linearMotionThreshold, angularMotionThreshold )
 }
 
 function render() {
@@ -180,7 +180,6 @@ function render() {
             c.fillStyle = body.color; c.fill()
         }
         polygonPath( c, body.vertices, -2 )
-        // c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .025 ).toString()
         c.strokeStyle = body.outlineColor
         c.stroke()
 

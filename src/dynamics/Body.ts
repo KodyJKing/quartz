@@ -1,6 +1,7 @@
 import { notQuiteInfiniteMass } from "../common"
 import Color, { Colors } from "../graphics/Color"
 import AABB from "../math/AABB"
+import { threshold } from "../math/math"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
 
@@ -86,16 +87,24 @@ export default class Body {
         this.positionalCorrection.y = 0
     }
 
-    updatePosition( timeStep ) {
+    updatePosition( timeStep, linearMotionThreshold = .1, angularMotionThreshold = .001 ) {
         if ( this.isStatic )
             return
 
-        this.position.x += this.velocity.x * timeStep
-        this.position.y += this.velocity.y * timeStep
-        this.angle += this.angularVelocity * timeStep
+        let dx = this.velocity.x * timeStep
+        let dy = this.velocity.y * timeStep
+        let dTheta = this.angularVelocity * timeStep
 
-        // if ( Math.abs( this.angle ) < 0.01 )
-        //     this.angle = 0
+        // this.position.x += dx
+        // this.position.y += dy
+        // this.angle += dTheta
+
+        this.position.x += threshold( dx, linearMotionThreshold )
+        this.position.y += threshold( dy, linearMotionThreshold )
+        this.angle += threshold( dTheta, angularMotionThreshold )
+
+        // this.angle %= Math.PI
+        // this.angle = threshold( this.angle, .001 )
 
         this.updateVertices()
         this.healthCheck()

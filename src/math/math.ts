@@ -22,6 +22,10 @@ export function clamp( min: number, max: number, x: number ) {
     return ( x < min ) ? min : ( ( x > max ) ? max : x )
 }
 
+export function threshold( x: number, cutoff: number ) {
+    return Math.abs( x ) < cutoff ? 0 : x
+}
+
 export function lerp( start: number, end: number, alpha: number ) {
     return ( end - start ) * alpha + start
 }
