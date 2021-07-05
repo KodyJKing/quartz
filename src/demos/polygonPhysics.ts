@@ -19,8 +19,8 @@ const offWhite = "#ebe6d1"
 const offWhiteDarker = "#d1ccb6"
 const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
-const timeStep = 1 / 120
-const gravity = 2000
+const timeStep = 1
+const gravity = .13
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1 // .99
 const wallThickness = 80
@@ -29,7 +29,7 @@ const velocitySolverOptions = {
     iterations: 10,
     minBounceVelocity: 0,
     restitution: .1,
-    coefficientOfFriction: 0
+    coefficientOfFriction: .0
 }
 const positionalSolverOptions = {
     iterations: 10,
@@ -72,6 +72,7 @@ const bodies: Body[] = [
     //     isStatic: true,
     //     color: offWhiteDarker
     // } ),
+
     new Body( {
         model: polygon( 50, 100 ),
         position: new Vector( canvas.width / 2, canvas.height / 4 ),
@@ -108,14 +109,14 @@ addRandomShapes()
 function addRandomShapes() {
     for ( let i = 0; i < 400; i++ ) {
         let radius = 30 // (40 + (Math.random() - .5) * 20)
-        let mass = radius ** 2 / ( 50 * 50 )
+        let mass = radius ** 2
         let inertia = mass * radius ** 2 * .5
         bodies.push( new Body( {
             model: polygon( Math.floor( Math.random() * 6 ) + 3, radius ),
             // model: polygon( 5, radius ),
             position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
-            angularVelocity: ( Math.random() - .5 ) * 100,
-            velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 2000 ),
+            angularVelocity: ( Math.random() - .5 ),
+            velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 20 ),
             mass, inertia,
             color: randomColor()
         } ) )
@@ -124,22 +125,32 @@ function addRandomShapes() {
 
 // addStack()
 function addStack() {
-    let size = 60
-    let mass = size ** 2 / ( 50 * 50 )
-    let inertia = mass * size ** 2 / 4
+    let boxWidth = 120
+    let boxHeight = 60
+    let mass = boxWidth * boxHeight
+    let inertia = mass * boxWidth ** 2 / 4
 
-    let columnPadding = 10
-    let columns = 7
-    let rows = 7
-    let width = ( size + columnPadding ) * columns
+    let columnPadding = 2
+    let columns = 10
+    let rows = 5
+    let stackWidth = ( boxWidth + columnPadding ) * columns
 
     for ( let i = 0; i < rows; i++ ) {
         for ( let j = 0; j < columns; j++ ) {
+            let dx = i % 2 == 0 ? 0 : boxWidth / 2
+            let w = ( j == 0 && dx == 0 || j == columns - 1 && dx > 0 ) ? boxWidth / 2 : boxWidth
+            dx += ( w == boxWidth ) ? 0 : ( w / 2 ) * ( dx == 0 ? 1 : -1 )
             bodies.push( new Body( {
-                model: boxPolygon( size, size ),
+                // model: boxPolygon( boxWidth, boxHeight ),
+                // position: new Vector(
+                //     canvas.width / 2 + j * ( boxWidth + columnPadding ) - stackWidth / 2,
+                //     canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
+                // ),
+                model: boxPolygon( w, boxHeight ),
                 position: new Vector(
-                    canvas.width / 2 + j * ( size + columnPadding ) - width / 2,
-                    canvas.height - wallThickness / 2 - size / 2 - i * size ),
+                    canvas.width / 2 + j * ( boxWidth + columnPadding ) - stackWidth / 2 + dx,
+                    canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
+                ),
                 mass, inertia,
                 color: randomColor()
             } ) )
@@ -168,9 +179,10 @@ function update() {
 
         // Repel when left-clicking.
         if ( input.mouse.get( 0 ) ) {
+            let power = -10000
             let diff = input.cursor.subtract( body.position )
             let length = Math.max( diff.length, 50 )
-            diff = diff.scale( -250000000 / length ** 3 )
+            diff = diff.scale( power / length ** 3 )
             body.velocity.x += diff.x * timeStep
             body.velocity.y += diff.y * timeStep
         }
