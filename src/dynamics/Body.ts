@@ -93,6 +93,10 @@ export default class Body {
         this.position.x += this.velocity.x * timeStep
         this.position.y += this.velocity.y * timeStep
         this.angle += this.angularVelocity * timeStep
+
+        // if ( Math.abs( this.angle ) < 0.01 )
+        //     this.angle = 0
+
         this.updateVertices()
         this.healthCheck()
     }

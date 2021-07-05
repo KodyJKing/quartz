@@ -28,7 +28,7 @@ const wallThickness = 80
 const velocitySolverOptions = {
     iterations: 100,
     minBounceVelocity: 0,
-    restitution: .3,
+    restitution: .0,
     coefficientOfFriction: .2
 }
 const positionalSolverOptions = {
@@ -74,7 +74,7 @@ const bodies: Body[] = [
     } ),
 ]
 
-addRandomShapes()
+// addRandomShapes()
 function addRandomShapes() {
     for ( let i = 0; i < 300; i++ ) {
         let radius = 30 // (40 + (Math.random() - .5) * 20)
@@ -92,16 +92,18 @@ function addRandomShapes() {
     }
 }
 
-// addStack()
+addStack()
 function addStack() {
-    let boxWidth = 120
-    let boxHeight = 60
-    let mass = boxWidth * boxHeight
-    let inertia = mass * boxWidth ** 2 / 4
+    let factor = 16 / 14
 
-    let columnPadding = 2
-    let columns = 10
-    let rows = 5
+    let boxWidth = 120 / factor
+    let boxHeight = 60 / factor
+    let mass = boxWidth * boxHeight
+    let inertia = mass * ( boxWidth ** 2 + boxHeight ** 2 ) / 12
+
+    let columnPadding = 1
+    let columns = 14 * factor
+    let rows = 14 * factor
     let stackWidth = ( boxWidth + columnPadding ) * columns
 
     for ( let i = 0; i < rows; i++ ) {
@@ -109,15 +111,15 @@ function addStack() {
             let dx = i % 2 == 0 ? 0 : boxWidth / 2
             let w = ( j == 0 && dx == 0 || j == columns - 1 && dx > 0 ) ? boxWidth / 2 : boxWidth
             dx += ( w == boxWidth ) ? 0 : ( w / 2 ) * ( dx == 0 ? 1 : -1 )
+
+            // dx = 0
+            // w = boxWidth
+
+            let x0 = canvas.width / 2 - stackWidth / 2 + boxWidth / 2
             bodies.push( new Body( {
-                // model: boxPolygon( boxWidth, boxHeight ),
-                // position: new Vector(
-                //     canvas.width / 2 + j * ( boxWidth + columnPadding ) - stackWidth / 2,
-                //     canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
-                // ),
                 model: boxPolygon( w, boxHeight ),
                 position: new Vector(
-                    canvas.width / 2 + j * ( boxWidth + columnPadding ) - stackWidth / 2 + dx,
+                    x0 + j * ( boxWidth + columnPadding ) + dx,
                     canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
                 ),
                 mass, inertia,

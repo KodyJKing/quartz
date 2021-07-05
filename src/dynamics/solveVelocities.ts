@@ -33,12 +33,12 @@ export default function solveVelocities(
                 bodyB.velocity.hot_add( rb.hot_crossZLeft( bodyB.angularVelocity, tmp ), velB )
                 velB.hot_subtract( velA, velBA )
 
-                let _restitution = velBA.lengthSquared < minBounceVelocity ** 2 ? 0 : restitution
+                let _restitution = velBA.getLengthSquared() < minBounceVelocity ** 2 ? 0 : restitution
                 let combinedEffectiveMass = 1 / ( bodyA.invMass + bodyB.invMass + raCrossN ** 2 * bodyA.invInertia + rbCrossN ** 2 * bodyB.invInertia )
                 let normalImpulse = velBA.dot( normal ) * ( 1 + _restitution ) * combinedEffectiveMass
 
-                if ( normalImpulse >= 0 )
-                    continue
+                // if ( normalImpulse >= 0 )
+                //     continue
 
                 normal.hot_leftNormal( tangent )
                 let tangentImpulse = normalImpulse * coefficientOfFriction * -Math.sign( velBA.dot( tangent ) )
