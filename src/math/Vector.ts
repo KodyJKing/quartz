@@ -99,4 +99,5 @@ export default class Vector {
     hot_scale( scale: number, target: Vector ) { return target.set( this.x * scale, this.y * scale ) }
     hot_leftNormal( target: Vector ) { return target.set( -this.y, this.x ) }
     hot_rightNormal( target: Vector ) { return target.set( this.y, -this.x ) }
+    hot_unit( target: Vector ) { let scale = 1 / this.length; return target.set( this.x * scale, this.y * scale ) }
 }

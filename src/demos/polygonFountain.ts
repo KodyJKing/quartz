@@ -123,41 +123,6 @@ function addRandomShapes() {
     }
 }
 
-// addStack()
-function addStack() {
-    let boxWidth = 120
-    let boxHeight = 60
-    let mass = boxWidth * boxHeight
-    let inertia = mass * boxWidth ** 2 / 4
-
-    let columnPadding = 2
-    let columns = 10
-    let rows = 5
-    let stackWidth = ( boxWidth + columnPadding ) * columns
-
-    for ( let i = 0; i < rows; i++ ) {
-        for ( let j = 0; j < columns; j++ ) {
-            let dx = i % 2 == 0 ? 0 : boxWidth / 2
-            let w = ( j == 0 && dx == 0 || j == columns - 1 && dx > 0 ) ? boxWidth / 2 : boxWidth
-            dx += ( w == boxWidth ) ? 0 : ( w / 2 ) * ( dx == 0 ? 1 : -1 )
-            bodies.push( new Body( {
-                // model: boxPolygon( boxWidth, boxHeight ),
-                // position: new Vector(
-                //     canvas.width / 2 + j * ( boxWidth + columnPadding ) - stackWidth / 2,
-                //     canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
-                // ),
-                model: boxPolygon( w, boxHeight ),
-                position: new Vector(
-                    canvas.width / 2 + j * ( boxWidth + columnPadding ) - stackWidth / 2 + dx,
-                    canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
-                ),
-                mass, inertia,
-                color: randomColor()
-            } ) )
-        }
-    }
-}
-
 mainLoop()
 function mainLoop() {
     clock.nextFrame()
