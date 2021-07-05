@@ -25,7 +25,7 @@ const linearAirDrag = 1 // .99
 const wallThickness = 80
 
 const velocitySolverOptions = {
-    iterations: 50,
+    iterations: 100,
     minBounceVelocity: 0,
     restitution: .1,
     coefficientOfFriction: .2
@@ -35,10 +35,12 @@ const positionalSolverOptions = {
     positionalDamping: .25
 }
 
-const linearMotionThreshold = .2
+const linearMotionThreshold = .1
 const angularMotionThreshold = .001
 
 const broadphaseCellSize = 100
+
+let dragPoint: Vector | undefined = undefined
 
 let toggleFlag = false
 window.addEventListener( "keypress", ev => {
@@ -56,24 +58,24 @@ const bodies: Body[] = [
         isStatic: true,
         color: offWhiteDarker
     } ),
-    new Body( {
-        model: boxPolygon( canvas.width, wallThickness ),
-        position: new Vector( canvas.width / 2, 0 ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
-    new Body( {
-        model: boxPolygon( wallThickness, canvas.height ),
-        position: new Vector( canvas.width, canvas.height / 2 ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
-    new Body( {
-        model: boxPolygon( wallThickness, canvas.height ),
-        position: new Vector( 0, canvas.height / 2 ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
+    // new Body( {
+    //     model: boxPolygon( canvas.width, wallThickness ),
+    //     position: new Vector( canvas.width / 2, 0 ),
+    //     isStatic: true,
+    //     color: offWhiteDarker
+    // } ),
+    // new Body( {
+    //     model: boxPolygon( wallThickness, canvas.height ),
+    //     position: new Vector( canvas.width, canvas.height / 2 ),
+    //     isStatic: true,
+    //     color: offWhiteDarker
+    // } ),
+    // new Body( {
+    //     model: boxPolygon( wallThickness, canvas.height ),
+    //     position: new Vector( 0, canvas.height / 2 ),
+    //     isStatic: true,
+    //     color: offWhiteDarker
+    // } ),
 ]
 
 // addRandomShapes()
@@ -102,7 +104,7 @@ function addStack() {
     let inertia = mass * ( boxWidth ** 2 + boxHeight ** 2 ) / 12
 
     let columnPadding = 0
-    let columns = 2
+    let columns = 4
     let rows = 16
     let stackWidth = ( boxWidth + columnPadding ) * columns
 
@@ -115,7 +117,8 @@ function addStack() {
             // dx = 0
             // w = boxWidth
 
-            let x0 = canvas.width / 2 - stackWidth / 2 + boxWidth / 2
+            // let x0 = canvas.width / 2 - stackWidth / 2 + boxWidth / 2
+            let x0 = canvas.width * 3 / 4 - stackWidth / 2 + boxWidth / 2
             bodies.push( new Body( {
                 model: boxPolygon( w, boxHeight ),
                 position: new Vector(
@@ -133,31 +136,36 @@ mainLoop()
 function mainLoop() {
     clock.nextFrame()
     render()
-    update()
+    updatePhysics()
+    updateControl()
     window.requestAnimationFrame( mainLoop )
 }
 
-function update() {
-    for ( let body of bodies ) {
-        if ( body.isStatic )
-            continue
-
-        body.updateVelocity( timeStep, gravity, rotationalAirDrag, linearAirDrag )
-
-        // Zero-gravity when right-clicking.
-        if ( input.mouse.get( 2 ) )
-            body.velocity.y -= gravity * timeStep
-
-        // Repel when left-clicking.
-        if ( input.mouse.get( 0 ) ) {
-            let power = -10000
-            let diff = input.cursor.subtract( body.position )
-            let length = Math.max( diff.length, 50 )
-            diff = diff.scale( power / length ** 3 )
-            body.velocity.x += diff.x * timeStep
-            body.velocity.y += diff.y * timeStep
-        }
+function updateControl() {
+    if ( input.mouse.get( 0 ) ) {
+        if ( !dragPoint )
+            dragPoint = input.cursor
+    } else if ( dragPoint ) {
+        let size = 20
+        let mass = size ** 2 * 10
+        let inertia = mass * size ** 2
+        let position = dragPoint.copy()
+        let velocity = dragPoint.subtract( input.cursor )
+        velocity = velocity.unit_safe().scale( Math.min( velocity.length, 50 ) )
+        let projectile = new Body( {
+            model: polygon( 100, size ),
+            position, velocity,
+            mass, inertia,
+            color: "#4a3648"
+        } )
+        bodies.push( projectile )
+        dragPoint = undefined
     }
+}
+
+function updatePhysics() {
+    for ( let body of bodies )
+        body.updateVelocity( timeStep, gravity, rotationalAirDrag, linearAirDrag )
 
     pairs = getCollisionPairs( bodies, canvas.width, canvas.height, broadphaseCellSize )
     solveVelocities( pairs, velocitySolverOptions )
@@ -213,6 +221,20 @@ function render() {
     // c.beginPath()
     // c.arc( m.x, m.y, 50, 0, Math.PI * 2 )
     // c.strokeStyle = "red"; c.stroke()
+
+    if ( dragPoint ) {
+        let m = input.cursor
+        let p = dragPoint
+        c.beginPath()
+        c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
+        c.fillStyle = "red"
+        c.fill()
+        c.beginPath()
+        c.moveTo( p.x, p.y )
+        c.lineTo( m.x, m.y )
+        c.strokeStyle = "red"
+        c.stroke()
+    }
 
     c.fillStyle = "red"
     c.font = "24px Impact"

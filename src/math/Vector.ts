@@ -18,6 +18,7 @@ export default class Vector {
     getLengthSquared() { return this.x * this.x + this.y * this.y }
 
     unit() { return this.scale( 1 / this.length ) }
+    unit_safe() { return this.scale( 1 / Math.max( this.length, 1e-10 ) ) }
     leftNormal() { return new Vector( -this.y, this.x ) }
     rightNormal() { return new Vector( this.y, -this.x ) }
     negate() { return new Vector( -this.x, -this.y ) }
