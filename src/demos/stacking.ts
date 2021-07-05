@@ -151,7 +151,7 @@ function updateControl() {
         let inertia = mass * size ** 2
         let position = dragPoint.copy()
         let velocity = dragPoint.subtract( input.cursor )
-        velocity = velocity.unit_safe().scale( Math.min( velocity.length, 50 ) )
+        velocity = velocity.unit_safe().scale( Math.min( velocity.length, 500 ) ).scale( .1 )
         let projectile = new Body( {
             model: polygon( 100, size ),
             position, velocity,
