@@ -1,16 +1,6 @@
 import Pair from "../collision/Pair"
 import Vector from "../math/Vector"
 
-const
-    ra = new Vector( 0, 0 ),
-    rb = new Vector( 0, 0 ),
-    velA = new Vector( 0, 0 ),
-    velB = new Vector( 0, 0 ),
-    velBA = new Vector( 0, 0 ),
-    tangent = new Vector( 0, 0 ),
-    impulse = new Vector( 0, 0 ),
-    tmp = new Vector( 0, 0 )
-
 export default function solveVelocities(
     pairs: Pair[], options: { iterations: number, minBounceVelocity: number, restitution: number, coefficientOfFriction: number }
 ) {
@@ -23,15 +13,15 @@ export default function solveVelocities(
             for ( let k = 0; k < contact.length; k++ ) {
                 let c = contact[ k ]
 
-                c.hot_subtract( bodyA.position, ra )
-                c.hot_subtract( bodyB.position, rb )
+                let ra = c.subtract( bodyA.position )
+                let rb = c.subtract( bodyB.position )
 
                 let raCrossN = ra.cross( normal )
                 let rbCrossN = rb.cross( normal )
 
-                bodyA.velocity.hot_add( ra.hot_crossZLeft( bodyA.angularVelocity, tmp ), velA )
-                bodyB.velocity.hot_add( rb.hot_crossZLeft( bodyB.angularVelocity, tmp ), velB )
-                velB.hot_subtract( velA, velBA )
+                let velA = bodyA.velocity.add( ra.crossZLeft( bodyA.angularVelocity ) )
+                let velB = bodyB.velocity.add( rb.crossZLeft( bodyB.angularVelocity ) )
+                let velBA = velB.subtract( velA )
 
                 let _restitution = velBA.getLengthSquared() < minBounceVelocity ** 2 ? 0 : restitution
                 let combinedEffectiveMass = 1 / ( bodyA.invMass + bodyB.invMass + raCrossN ** 2 * bodyA.invInertia + rbCrossN ** 2 * bodyB.invInertia )
@@ -40,10 +30,10 @@ export default function solveVelocities(
                 if ( normalImpulse >= 0 )
                     continue
 
-                normal.hot_leftNormal( tangent )
+                let tangent = normal.leftNormal()
                 let tangentImpulse = normalImpulse * coefficientOfFriction * -Math.sign( velBA.dot( tangent ) )
 
-                impulse.set(
+                let impulse = new Vector(
                     normal.x * normalImpulse + tangent.x * tangentImpulse,
                     normal.y * normalImpulse + tangent.y * tangentImpulse
                 )
