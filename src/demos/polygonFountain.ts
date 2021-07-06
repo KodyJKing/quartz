@@ -55,25 +55,6 @@ const bodies: Body[] = [
         isStatic: true,
         color: offWhiteDarker
     } ),
-    // new Body( {
-    //     model: boxPolygon( canvas.width, wallThickness ),
-    //     position: new Vector( canvas.width / 2, 0 ),
-    //     isStatic: true,
-    //     color: offWhiteDarker
-    // } ),
-    // new Body( {
-    //     model: boxPolygon( wallThickness, canvas.height ),
-    //     position: new Vector( canvas.width, canvas.height / 2 ),
-    //     isStatic: true,
-    //     color: offWhiteDarker
-    // } ),
-    // new Body( {
-    //     model: boxPolygon( wallThickness, canvas.height ),
-    //     position: new Vector( 0, canvas.height / 2 ),
-    //     isStatic: true,
-    //     color: offWhiteDarker
-    // } ),
-
     new Body( {
         model: polygon( 50, 100 ),
         position: new Vector( canvas.width / 2, canvas.height / 4 ),
@@ -169,9 +150,6 @@ function update() {
     solveVelocities( pairs, velocitySolverOptions )
     solvePositions( pairs, positionalSolverOptions )
 
-    // let netPenetration = pairs.map(x => Math.max(0, -x.info.separation)).reduce((a, b) => a + b)
-    // console.log("Net penetration: " + netPenetration.toFixed(2))
-
     for ( let body of bodies )
         body.updatePosition( timeStep )
 }
@@ -186,9 +164,8 @@ function render() {
     c.lineJoin = "round"
 
     for ( let body of bodies ) {
-        if ( !toggleFlag )
-            Drawing.polygon( body.vertices ).fill( body.color )
-        Drawing.polygon( body.vertices, -2 ).stroke( body.outlineColor )
+        Drawing.polygon( body.vertices, -1 ).fill( body.color )
+        // Drawing.stroke( body.outlineColor )
 
         // let p = body.position
         // Drawing.circle( p, 3 ).fill( offWhite )
@@ -206,5 +183,13 @@ function render() {
 
     c.fillStyle = "red"
     c.font = "24px Impact"
-    c.fillText( clock.averageFPS.toFixed( 2 ), 0 + 2, 20 + 2 )
+    c.fillText( "FPS: " + clock.averageFPS.toFixed( 2 ), 2, 22 )
+
+    // if ( pairs.length > 0 ) {
+    //     let netPenetration = pairs.map( x => Math.max( 0, -x.info.separation ) ).reduce( ( a, b ) => a + b )
+    //     let avergaePenetration = netPenetration / pairs.length
+    //     c.fillStyle = "blue"
+    //     c.font = "24px Impact"
+    //     c.fillText( "Average penetration: " + avergaePenetration.toFixed( 2 ), 2, 22 * 2 )
+    // }
 }
