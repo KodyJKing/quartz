@@ -7,7 +7,7 @@ export type CollisionInfo = { normal: Vector, separation: number, contact: Vecto
 export default function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
     let maxNormal = Vector.zero
     let maxDist = -Infinity
-    function maxSeperationAxisSingle( poly: Vector[], otherSupport: SupportFunction, sign: number ) {
+    function maxSeperationAxis( poly: Vector[], otherSupport: SupportFunction, sign: number ) {
         for ( let i = 0; i < poly.length; i++ ) {
             i = modulus( i, poly.length )
             let j = modulus( i + 1, poly.length )
@@ -20,8 +20,8 @@ export default function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
     }
 
     let supportA = polygonSupport( polyA ), supportB = polygonSupport( polyB )
-    maxSeperationAxisSingle( polyA, supportB, -1 )
-    maxSeperationAxisSingle( polyB, supportA, 1 )
+    maxSeperationAxis( polyA, supportB, -1 )
+    maxSeperationAxis( polyB, supportA, 1 )
 
     let contacts = generateContacts( supportA, supportB, maxNormal )
 

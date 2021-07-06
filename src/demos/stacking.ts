@@ -79,36 +79,14 @@ const bodies: Body[] = [
     // } ),
 ]
 
-// addRandomShapes()
-function addRandomShapes() {
-    for ( let i = 0; i < 300; i++ ) {
-        let radius = 30 // (40 + (Math.random() - .5) * 20)
-        let mass = radius ** 2
-        let inertia = mass * radius ** 2 * .5
-        bodies.push( new Body( {
-            model: polygon( Math.floor( Math.random() * 6 ) + 3, radius ),
-            // model: polygon( 5, radius ),
-            position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
-            angularVelocity: ( Math.random() - .5 ),
-            velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 20 ),
-            mass, inertia,
-            color: randomColor()
-        } ) )
-    }
-}
-
 addStack()
 function addStack() {
     let boxWidth = 120 * .8
     let boxHeight = 60 * .8
-    let mass = boxWidth * boxHeight
-    let inertia = mass * ( boxWidth ** 2 + boxHeight ** 2 ) / 12
-
     let columnPadding = 0
     let columns = 4
     let rows = 16
     let stackWidth = ( boxWidth + columnPadding ) * columns
-
     for ( let i = 0; i < rows; i++ ) {
         for ( let j = 0; j < columns; j++ ) {
             let dx = i % 2 == 0 ? 0 : boxWidth / 2
@@ -117,6 +95,9 @@ function addStack() {
 
             // dx = 0
             // w = boxWidth
+
+            let mass = w * boxHeight
+            let inertia = mass * ( w ** 2 + boxHeight ** 2 ) / 12
 
             // let x0 = canvas.width / 2 - stackWidth / 2 + boxWidth / 2
             let x0 = canvas.width * 3 / 4 - stackWidth / 2 + boxWidth / 2
@@ -151,10 +132,7 @@ function updateControl() {
         let mass = size ** 2 * 10
         let inertia = mass * size ** 2
         let position = dragPoint.copy()
-        let velocity = dragPoint.subtract( input.cursor )
-        const maxSpeed = 75
-        const maxDraw = 200
-        velocity = velocity.unit_safe().scale( Math.min( velocity.length, maxDraw ) ).scale( maxSpeed / maxDraw )
+        let velocity = projectileVelocity()
         let projectile = new Body( {
             model: polygon( 100, size ),
             position, velocity,
@@ -164,6 +142,15 @@ function updateControl() {
         bodies.push( projectile )
         dragPoint = undefined
     }
+}
+
+function projectileVelocity() {
+    if ( !dragPoint )
+        return
+    const maxSpeed = 75
+    const maxDraw = 200
+    let velocity = dragPoint.subtract( input.cursor )
+    return velocity.unit_safe().scale( Math.min( velocity.length, maxDraw ) ).scale( maxSpeed / maxDraw )
 }
 
 function updatePhysics() {
@@ -211,7 +198,21 @@ function render() {
         let p = dragPoint
         let f = p.add( p.subtract( m ).scale( 1000 ) )
         Drawing.vLine( p, m ).stroke( "white" )
-        Drawing.vLine( p, f ).stroke( "rgba(255, 255, 255, .2)" )
+
+        // Drawing.vLine( p, f ).stroke( "rgba(255, 255, 255, .2)" )
+        let pos = p.copy()
+        let vel = projectileVelocity() as Vector
+        // c.beginPath()
+        // c.moveTo( pos.x, pos.y )
+        for ( let i = 0; i < 1000; i++ ) {
+            vel = vel.addY( gravity * timeStep )
+            pos = pos.add( vel.scale( timeStep ) )
+            // c.lineTo( pos.x, pos.y )
+            Drawing.vCircle( pos, 2 ).fill( "white" )
+        }
+        // c.strokeStyle = "rgba(255, 255, 255, .2)"
+        // c.stroke()
+
         Drawing.vCircle( p, 2 ).fill( "white" )
     }
 
