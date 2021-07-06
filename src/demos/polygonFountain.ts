@@ -27,7 +27,7 @@ const linearAirDrag = 1 // .99
 const wallThickness = 80
 
 const velocitySolverOptions = {
-    iterations: 10,
+    iterations: 30,
     minBounceVelocity: 0,
     restitution: .1,
     coefficientOfFriction: .0
@@ -37,7 +37,7 @@ const positionalSolverOptions = {
     positionalDamping: .25
 }
 
-const broadphaseCellSize = 100
+const broadphaseCellSize = 200
 
 let toggleFlag = false
 window.addEventListener( "keypress", ev => {
@@ -89,8 +89,8 @@ const bodies: Body[] = [
 
 addRandomShapes()
 function addRandomShapes() {
-    for ( let i = 0; i < 400; i++ ) {
-        let radius = 30 // (40 + (Math.random() - .5) * 20)
+    for ( let i = 0; i < 1000; i++ ) {
+        let radius = 20 // (40 + (Math.random() - .5) * 20)
         let mass = radius ** 2
         let inertia = mass * radius ** 2 * .5
         bodies.push( new Body( {
@@ -163,15 +163,16 @@ function render() {
     c.lineCap = "round"
     c.lineJoin = "round"
 
-    for ( let body of bodies ) {
-        Drawing.polygon( body.vertices, -1 ).fill( body.color )
-        // Drawing.stroke( body.outlineColor )
+    if ( !toggleFlag )
+        for ( let body of bodies ) {
+            Drawing.polygon( body.vertices, -1 ).fill( body.color )
+            // Drawing.stroke( body.outlineColor )
 
-        // let p = body.position
-        // Drawing.circle( p, 3 ).fill( offWhite )
-        // let h = Vector.polar( body.angle, 10 )
-        // Drawing.line( p, p.add( h ) ).stroke( offWhite )
-    }
+            // let p = body.position
+            // Drawing.circle( p, 3 ).fill( offWhite )
+            // let h = Vector.polar( body.angle, 10 )
+            // Drawing.line( p, p.add( h ) ).stroke( offWhite )
+        }
 
     // for ( let pair of pairs ) {
     //     let n = pair.info.normal.scale( 5 )
@@ -185,11 +186,11 @@ function render() {
     c.font = "24px Impact"
     c.fillText( "FPS: " + clock.averageFPS.toFixed( 2 ), 2, 22 )
 
-    // if ( pairs.length > 0 ) {
-    //     let netPenetration = pairs.map( x => Math.max( 0, -x.info.separation ) ).reduce( ( a, b ) => a + b )
-    //     let avergaePenetration = netPenetration / pairs.length
-    //     c.fillStyle = "blue"
-    //     c.font = "24px Impact"
-    //     c.fillText( "Average penetration: " + avergaePenetration.toFixed( 2 ), 2, 22 * 2 )
-    // }
+    if ( pairs.length > 0 ) {
+        let netPenetration = pairs.map( x => Math.max( 0, -x.info.separation ) ).reduce( ( a, b ) => a + b )
+        let avergaePenetration = netPenetration / pairs.length
+        c.fillStyle = "blue"
+        c.font = "24px Impact"
+        c.fillText( "Average penetration: " + avergaePenetration.toFixed( 2 ), 2, 22 * 2 )
+    }
 }
