@@ -8,6 +8,7 @@ import solveVelocities from "../dynamics/solveVelocities"
 import Color, { Colors } from "../graphics/Color"
 import Input from "../Input"
 import Vector from "../math/Vector"
+import Drawing from "./Drawing"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -176,6 +177,8 @@ function update() {
 }
 
 function render() {
+    Drawing.context = c
+
     c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
     c.lineWidth = 2
@@ -183,45 +186,23 @@ function render() {
     c.lineJoin = "round"
 
     for ( let body of bodies ) {
-        if ( !toggleFlag ) {
-            polygonPath( c, body.vertices )
-            c.fillStyle = body.color; c.fill()
-        }
-        polygonPath( c, body.vertices, -2 )
-        // c.strokeStyle = Color.parse( body.color ).lerp( Colors.black, .025 ).toString()
-        c.strokeStyle = body.outlineColor
-        c.stroke()
+        if ( !toggleFlag )
+            Drawing.polygon( body.vertices ).fill( body.color )
+        Drawing.polygon( body.vertices, -2 ).stroke( body.outlineColor )
 
         // let p = body.position
-        // c.beginPath()
-        // c.arc( p.x, p.y, 4, 0, Math.PI * 2 )
-        // c.fillStyle = "blue"; c.fill()
-
-        // let h = Vector.polar( body.angle, 20 )
-        // c.beginPath()
-        // c.moveTo( p.x, p.y )
-        // c.lineTo( p.x + h.x, p.y + h.y )
-        // c.strokeStyle = offWhite; c.stroke()
+        // Drawing.circle( p, 3 ).fill( offWhite )
+        // let h = Vector.polar( body.angle, 10 )
+        // Drawing.line( p, p.add( h ) ).stroke( offWhite )
     }
 
     // for ( let pair of pairs ) {
     //     let n = pair.info.normal.scale( 5 )
     //     for ( let p of pair.info.contact ) {
-    //         c.beginPath()
-    //         c.arc( p.x, p.y, 2, 0, Math.PI * 2 )
-    //         c.fillStyle = offWhite; c.fill()
-    //         c.beginPath()
-    //         c.moveTo( p.x - n.x, p.y - n.y )
-    //         c.lineTo( p.x + n.x, p.y + n.y )
-    //         c.strokeStyle = "rgba(255, 255, 255, .5)"
-    //         c.stroke()
+    //         Drawing.circle( p, 2 ).fill( offWhite )
+    //         Drawing.line( p.subtract( n ), p.add( n ) ).stroke( "rgba(255, 255, 255, .5)" )
     //     }
     // }
-
-    // let m = input.cursor
-    // c.beginPath()
-    // c.arc( m.x, m.y, 50, 0, Math.PI * 2 )
-    // c.strokeStyle = "red"; c.stroke()
 
     c.fillStyle = "red"
     c.font = "24px Impact"

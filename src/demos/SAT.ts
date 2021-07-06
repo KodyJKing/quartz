@@ -4,6 +4,7 @@ import { initCanvas, polygon, polygonPath } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
+import Drawing from "./Drawing"
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -26,6 +27,8 @@ function mainLoop() {
 }
 
 function render() {
+    Drawing.context = c
+
     c.fillStyle = "#ebe6d1"
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
@@ -44,30 +47,19 @@ function render() {
         new Vector( 100, 100 ),
         new Vector( -100, 100 ),
     ].map( v => matA.multiplyVec( v ) )
-
     let matB = Matrix.translation( 500, 500 )
     let polyB = polygon( 6, 50 ).map( v => matB.multiplyVec( v ) )
 
     let contactInfo = SAT( polyA, polyB )
+
     if ( contactInfo.separation <= 0 )
         c.globalAlpha = .5
-
-    polygonPath( c, polyA )
-    c.fillStyle = colorPalette[ 3 ]
-    c.fill()
-
-    polygonPath( c, polyB )
-    c.fillStyle = colorPalette[ 4 ]
-    c.fill()
-
+    Drawing.polygon( polyA ).fill( colorPalette[ 3 ] )
+    Drawing.polygon( polyB ).fill( colorPalette[ 4 ] )
     c.globalAlpha = 1
 
-    for ( let v of contactInfo.contact ) {
-        c.beginPath()
-        c.arc( v.x, v.y, 4, 0, Math.PI * 2 )
-        c.fillStyle = colorPalette[ 1 ]
-        c.fill()
-    }
+    for ( let v of contactInfo.contact )
+        Drawing.vCircle( v, 4 ).fill( colorPalette[ 1 ] )
 
     c.fillStyle = "red"
     c.font = "24px Impact"
