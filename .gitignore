@@ -1,4 +1,7 @@
 /.cache
+/.parcel-cache
 /.vscode
 /dist
+/build
 /node_modules
+/lib

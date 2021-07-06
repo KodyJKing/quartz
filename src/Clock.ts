@@ -1,4 +1,4 @@
-import { lerp } from "./math"
+import { lerp } from "./math/math"
 
 export default class Clock {
     lastFrame: number
@@ -12,8 +12,10 @@ export default class Clock {
         let dt = now - this.lastFrame
         this.lastFrame = now
 
-        let FPS = 1000 / dt
-        this.averageFPS = lerp( this.averageFPS, FPS, 0.1 )
+        if ( dt != 0 ) {
+            let FPS = 1000 / dt
+            this.averageFPS = lerp( this.averageFPS, FPS, 0.04 )
+        }
 
         return dt
     }
