@@ -16,19 +16,3 @@ export function polygonSupport( poly: Vector[] ): SupportFunction {
         return best
     }
 }
-
-// export function polygonSupport( poly: Vector[] ): SupportFunction {
-    // let i = 0, length = poly.length
-    // return ( axis: Vector ) => {
-        // let dist = poly[ i ].dot( axis )
-        // let nextDist = 0
-        // let j = i
-        // while ( dist < ( nextDist = poly[ i = ++i % length ].dot( axis ) ) )
-            // dist = nextDist, j = i
-        // i = j
-        // while ( dist < ( nextDist = poly[ i = modulus( --i, length ) ].dot( axis ) ) )
-            // dist = nextDist, j = i
-        // i = j
-        // return poly[ i ]
-    // }
-// }

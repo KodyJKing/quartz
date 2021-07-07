@@ -114,6 +114,20 @@ function addStack() {
     }
 }
 
+// addBox()
+function addBox() {
+    let boxWidth = 120 * 5
+    let boxHeight = 60 * 5
+    let mass = boxWidth * boxHeight
+    let inertia = mass * ( boxWidth ** 2 + boxHeight ** 2 ) / 12
+    bodies.push( new Body( {
+        model: boxPolygon( boxWidth, boxHeight ),
+        position: new Vector( canvas.width / 2, canvas.height - wallThickness / 2 - boxHeight / 2 ),
+        mass, inertia,
+        color: "#408040"
+    } ) )
+}
+
 mainLoop()
 function mainLoop() {
     clock.nextFrame()
@@ -158,7 +172,12 @@ function updatePhysics() {
         body.updateVelocity( timeStep, gravity, rotationalAirDrag, linearAirDrag )
 
     pairs = getCollisionPairs( bodies, canvas.width, canvas.height, broadphaseCellSize )
-    solveVelocities( pairs, velocitySolverOptions )
+    solveVelocities( pairs, velocitySolverOptions, ( pair ) => {
+        // if ( toggleFlag ) {
+        //     render()
+        //     debugger
+        // }
+    } )
     solvePositions( pairs, positionalSolverOptions )
 
     for ( let body of bodies )
@@ -175,21 +194,27 @@ function render() {
     c.lineJoin = "round"
 
     for ( let body of bodies ) {
-        if ( !toggleFlag )
-            Drawing.polygon( body.vertices ).fill( body.color )
+        // if ( !toggleFlag )
+        Drawing.polygon( body.vertices ).fill( body.color )
         Drawing.polygon( body.vertices, -2 ).stroke( body.outlineColor )
 
-        // let p = body.position
-        // Drawing.circle( p, 3 ).fill( offWhite )
-        // let h = Vector.polar( body.angle, 10 )
-        // Drawing.line( p, p.add( h ) ).stroke( offWhite )
+        if ( toggleFlag ) {
+            let p = body.position
+            Drawing.vCircle( p, 3 ).fill( offWhite )
+            let h = Vector.polar( body.angle, 10 )
+            Drawing.vLine( p, p.add( h ) ).stroke( offWhite )
+            Drawing.vLine( p, p.add( body.velocity ) ).stroke( "red" )
+            c.beginPath()
+            c.arc( p.x, p.y, 10, body.angle, body.angle + body.angularVelocity * 10, body.angularVelocity < 0 )
+            Drawing.stroke( "green" )
+        }
     }
 
     // for ( let pair of pairs ) {
     //     let n = pair.info.normal.scale( 5 )
     //     for ( let p of pair.info.contact ) {
-    //         Drawing.circle( p, 2 ).fill( offWhite )
-    //         Drawing.line( p.subtract( n ), p.add( n ) ).stroke( "rgba(255, 255, 255, .5)" )
+    //         Drawing.vCircle( p, 2 ).fill( "black" )
+    //         Drawing.vLine( p.subtract( n ), p.add( n ) ).stroke( "black" )
     //     }
     // }
 

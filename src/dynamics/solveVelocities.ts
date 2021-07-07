@@ -2,7 +2,8 @@ import Pair from "../collision/Pair"
 import Vector from "../math/Vector"
 
 export default function solveVelocities(
-    pairs: Pair[], options: { iterations: number, minBounceVelocity: number, restitution: number, coefficientOfFriction: number }
+    pairs: Pair[], options: { iterations: number, minBounceVelocity: number, restitution: number, coefficientOfFriction: number },
+    onSolvePair?: ( pair: Pair ) => void
 ) {
     let { iterations, minBounceVelocity, restitution, coefficientOfFriction } = options
     for ( let i = 0; i < iterations; i++ ) {
@@ -48,6 +49,9 @@ export default function solveVelocities(
                     bodyB.velocity.y -= impulse.y * bodyB.invMass
                     bodyB.angularVelocity -= rb.cross( impulse ) * bodyB.invInertia
                 }
+
+                if ( onSolvePair )
+                    onSolvePair( pair )
             }
         }
     }

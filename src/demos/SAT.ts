@@ -1,6 +1,6 @@
 import Clock from "../Clock"
 import SAT from "../collision/SAT"
-import { initCanvas, polygon, polygonPath } from "../common"
+import { boxPolygon, initCanvas, polygon, polygonPath } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
@@ -33,22 +33,17 @@ function render() {
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     let { x, y } = input.cursor
-    // let matA = Matrix.transformation( 0, 0, Math.PI / 4, 1, 1, x, y )
-    let matA = [
-        Matrix.translation( 500, 500 ),
-        Matrix.rotation( performance.now() / 1000 ),
-        Matrix.translation( 200, 0 ),
-        Matrix.rotation( performance.now() / 1100 ),
-        Matrix.scale( 2, 1 )
-    ].reduce( ( a, b ) => a.multiply( b ) )
-    let polyA = [
-        new Vector( -100, -100 ),
-        new Vector( 100, -100 ),
-        new Vector( 100, 100 ),
-        new Vector( -100, 100 ),
-    ].map( v => matA.multiplyVec( v ) )
-    let matB = Matrix.translation( 500, 500 )
-    let polyB = polygon( 6, 50 ).map( v => matB.multiplyVec( v ) )
+    let matA = Matrix.transformation( 0, 0, 0, 1, 1, x, y )
+    // let matA = [
+    //     Matrix.translation( 500, 500 ),
+    //     Matrix.rotation( performance.now() / 10000 ),
+    //     Matrix.translation( 200, 0 ),
+    //     Matrix.rotation( performance.now() / 11000   ),
+    //     Matrix.scale( 2, 1 )
+    // ].reduce( ( a, b ) => a.multiply( b ) )
+    let polyA = boxPolygon( 100, 100 ).map( v => matA.multiplyVec( v ) )
+    let matB = Matrix.transformation( 0, 0, .1, 1, 1, 500, 500 )
+    let polyB = boxPolygon( 100, 100 ).map( v => matB.multiplyVec( v ) )
 
     let contactInfo = SAT( polyA, polyB )
 
@@ -58,8 +53,11 @@ function render() {
     Drawing.polygon( polyB ).fill( colorPalette[ 4 ] )
     c.globalAlpha = 1
 
-    for ( let v of contactInfo.contact )
+    for ( let v of contactInfo.contact ) {
+        let n = contactInfo.normal.scale( 10 )
         Drawing.vCircle( v, 4 ).fill( colorPalette[ 1 ] )
+        Drawing.vLine( v, v.add( n ) ).stroke( colorPalette[ 1 ] )
+    }
 
     c.fillStyle = "red"
     c.font = "24px Impact"
