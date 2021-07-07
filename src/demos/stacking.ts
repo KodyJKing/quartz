@@ -18,8 +18,8 @@ const offWhite = "#ebe6d1"
 const offWhiteDarker = "#d1ccb6"
 const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
-const stepsPerFrame = 10
-const timeStep = .1 / stepsPerFrame
+const stepsPerFrame = 1
+const timeStep = 1 / stepsPerFrame
 const gravity = .13
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1 // .99
@@ -89,8 +89,8 @@ function addStack() {
     let boxWidth = 120 * .8
     let boxHeight = 60 * .8
     let columnPadding = 0
-    let columns = 4
-    let rows = 16
+    let columns = 1
+    let rows = 2
     let stackWidth = ( boxWidth + columnPadding ) * columns
     for ( let i = 0; i < rows; i++ ) {
         for ( let j = 0; j < columns; j++ ) {
@@ -98,8 +98,8 @@ function addStack() {
             let w = ( j == 0 && dx == 0 || j == ( columns - 1 ) && dx > 0 ) ? boxWidth / 2 : boxWidth
             dx += ( w == boxWidth ) ? 0 : ( w / 2 ) * ( dx == 0 ? 1 : -1 )
 
-            // dx = 0
-            // w = boxWidth
+            dx = 0
+            w = boxWidth
 
             let mass = w * boxHeight
             let inertia = mass * ( w ** 2 + boxHeight ** 2 ) / 12
@@ -137,7 +137,7 @@ function updateControl() {
             dragPoint = input.cursor
     } else if ( dragPoint ) {
         let size = 20
-        let mass = size ** 2 * 2
+        let mass = size ** 2 * 10
         let inertia = mass * size ** 2
         let position = dragPoint.copy()
         let velocity = projectileVelocity()
@@ -155,8 +155,8 @@ function updateControl() {
 function projectileVelocity() {
     if ( !dragPoint )
         return
-    const maxSpeed = 1000
-    const maxDraw = 100
+    const maxSpeed = 75
+    const maxDraw = 150
     let velocity = dragPoint.subtract( input.cursor )
     return velocity.unit_safe().scale( Math.min( velocity.length, maxDraw ) ).scale( maxSpeed / maxDraw )
 }
@@ -176,11 +176,11 @@ function updatePhysics() {
 function render() {
     Drawing.context = c
 
-    if ( toggleFlag )
-        c.globalAlpha = .7
+    // if ( toggleFlag )
+    //     c.globalAlpha = .7
     c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
-    c.globalAlpha = 1
+    // c.globalAlpha = 1
     c.lineWidth = 2
     c.lineCap = "round"
     c.lineJoin = "round"
@@ -195,13 +195,13 @@ function render() {
         // Drawing.line( p, p.add( h ) ).stroke( offWhite )
     }
 
-    // for ( let pair of pairs ) {
-    //     let n = pair.info.normal.scale( 5 )
-    //     for ( let p of pair.info.contact ) {
-    //         Drawing.vCircle( p, 2 ).fill( offWhite )
-    //         Drawing.vLine( p.subtract( n ), p.add( n ) ).stroke( "rgba(255, 255, 255, .5)" )
-    //     }
-    // }
+    for ( let pair of pairs ) {
+        let n = pair.info.normal.scale( 5 )
+        for ( let p of pair.info.contact ) {
+            Drawing.vCircle( p, 2 ).fill( offWhite )
+            Drawing.vLine( p.subtract( n ), p.add( n ) ).stroke( "rgba(255, 255, 255, .5)" )
+        }
+    }
 
     if ( dragPoint ) {
         let m = input.cursor

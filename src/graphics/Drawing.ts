@@ -15,6 +15,18 @@ export default class Drawing {
         Drawing.context.fill()
         return Drawing
     }
+    static save() {
+        Drawing.context.save()
+        return Drawing
+    }
+    static restore() {
+        Drawing.context.restore()
+        return Drawing
+    }
+    static vTranslate( v: Vector ) {
+        Drawing.context.translate( v.x, v.y )
+        return Drawing
+    }
     static vLine( a: Vector, b: Vector ) {
         let c = Drawing.context
         c.beginPath()

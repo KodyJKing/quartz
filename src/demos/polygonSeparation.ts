@@ -1,10 +1,10 @@
 import Clock from "../Clock"
-import { polygonSupport } from "../collision/Collision"
 import { boxPolygon, initCanvas, polygon } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
 import Drawing from "../graphics/Drawing"
+import SupportFunctions from "../math/SupportFunctions"
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -64,8 +64,8 @@ function drawGraph( polyA: Vector[], polyB: Vector[] ) {
     let vscale = 1
     let hscale = 100
 
-    let supportA = polygonSupport( polyA )
-    let supportB = polygonSupport( polyB )
+    let supportA = SupportFunctions.polygon( polyA )
+    let supportB = SupportFunctions.polygon( polyB )
 
     let resolution = 1000
     let dTheta = Math.PI * 2 / resolution

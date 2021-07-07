@@ -1,7 +1,17 @@
 import { modulus } from "./math/math"
+import { SupportFunction } from "./math/SupportFunctions"
 import Vector from "./math/Vector"
 
 export const notQuiteInfiniteMass = 1e+32
+
+export function sampleSupport( n, support: SupportFunction ) {
+    let result: Vector[] = []
+    for ( let i = 0; i < n; i++ ) {
+        let theta = Math.PI * 2 * i / n
+        result.push( support( Vector.polar( theta, 1 ) ) )
+    }
+    return result
+}
 
 export function polygon( n, radius ) {
     let result: Vector[] = []

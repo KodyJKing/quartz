@@ -1,9 +1,9 @@
 import Body from "../dynamics/Body"
 import { modulus } from "../math/math"
+import SupportFunctions, { SupportFunction } from "../math/SupportFunctions"
 import Vector from "../math/Vector"
 import Broadphase from "./Broadphase"
 
-export type SupportFunction = ( v: Vector ) => Vector
 export type CollisionInfo = { normal: Vector, separation: number, contact: Vector[] }
 export type Pair = { bodyA: Body, bodyB: Body, info: CollisionInfo }
 export type RaycastInfo = { time: number, normal: Vector }
@@ -36,7 +36,7 @@ export function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
         }
     }
 
-    let supportA = polygonSupport( polyA ), supportB = polygonSupport( polyB )
+    let supportA = SupportFunctions.polygon( polyA ), supportB = SupportFunctions.polygon( polyB )
     maxSeperationAxis( polyA, supportB, -1 )
     maxSeperationAxis( polyB, supportA, 1 )
 
@@ -49,21 +49,7 @@ export function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
     }
 }
 
-export function polygonSupport( poly: Vector[] ): SupportFunction {
-    return ( axis: Vector ) => {
-        let best = poly[ 0 ]
-        let bestDist = best.dot( axis )
-        for ( let i = 1; i < poly.length; i++ ) {
-            let next = poly[ i ]
-            let nextDist = next.dot( axis )
-            if ( nextDist > bestDist )
-                best = next, bestDist = nextDist
-        }
-        return best
-    }
-}
-
-function generateContacts( supportA: SupportFunction, supportB: SupportFunction, normal: Vector, angularTolerance = 0.01 ) {
+export function generateContacts( supportA: SupportFunction, supportB: SupportFunction, normal: Vector, angularTolerance = 0.01 ) {
     // TODO: Simplify and reduce the number of allocations here.
 
     let rotator = Vector.polar( angularTolerance, 1 )
@@ -120,7 +106,7 @@ function raycastSupportFunction( support: SupportFunction, ray: Vector, maxItera
         if ( ( ++i == maxIterations ) || c.equivalent( a ) || c.equivalent( b ) ) {
             let normal = abNormal.unit()
             let edgeDist = normal.dot( a )
-            let approachSpeed = - normal.dot( ray )
+            let approachSpeed = normal.dot( ray )
             let time = edgeDist / approachSpeed
             // let hitPoint = Geometry.intersect( ray.rightNormal(), 0, abNormal, a.dot( abNormal ) )
             // if ( !hitPoint ) return null // This should never happen.
