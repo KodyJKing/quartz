@@ -6,7 +6,7 @@ import solvePositions from "../dynamics/solvePositions"
 import solveVelocities from "../dynamics/solveVelocities"
 import Input from "../Input"
 import Vector from "../math/Vector"
-import Drawing from "./Drawing"
+import Drawing from "../graphics/Drawing"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D

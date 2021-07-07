@@ -4,7 +4,7 @@ import { boxPolygon, initCanvas, polygon } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
-import Drawing from "./Drawing"
+import Drawing from "../graphics/Drawing"
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D

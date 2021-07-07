@@ -6,7 +6,7 @@ import solvePositions from "../dynamics/solvePositions"
 import solveVelocities from "../dynamics/solveVelocities"
 import Input from "../Input"
 import Vector from "../math/Vector"
-import Drawing from "./Drawing"
+import Drawing from "../graphics/Drawing"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -18,8 +18,8 @@ const offWhite = "#ebe6d1"
 const offWhiteDarker = "#d1ccb6"
 const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
-const updatesPerFrame = 10
-const timeStep = 1 / updatesPerFrame
+const stepsPerFrame = 10
+const timeStep = .1 / stepsPerFrame
 const gravity = .13
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1 // .99
@@ -28,8 +28,8 @@ const wallThickness = 80
 const velocitySolverOptions = {
     iterations: 100,
     minBounceVelocity: 0,
-    restitution: .3,
-    coefficientOfFriction: .1
+    restitution: .1,
+    coefficientOfFriction: .2
 }
 const positionalSolverOptions = {
     iterations: 10,
@@ -37,8 +37,8 @@ const positionalSolverOptions = {
     allowedPenetration: .2
 }
 
-const linearMotionThreshold = .1 / updatesPerFrame
-const angularMotionThreshold = .001 / updatesPerFrame
+const linearMotionThreshold = .1 * timeStep
+const angularMotionThreshold = .001 * timeStep
 
 const broadphaseCellSize = 100
 
@@ -50,6 +50,7 @@ window.addEventListener( "keydown", ev => {
         toggleFlag = !toggleFlag
     } else if ( ev.key == "ArrowRight" ) {
         updatePhysics()
+        render()
     } else if ( ev.key.toLocaleLowerCase() == "r" ) {
         location.reload()
     }
@@ -85,8 +86,8 @@ const bodies: Body[] = [
 
 addStack()
 function addStack() {
-    let boxWidth = 120 * .5
-    let boxHeight = 60 * .5
+    let boxWidth = 120 * .8
+    let boxHeight = 60 * .8
     let columnPadding = 0
     let columns = 4
     let rows = 16
@@ -103,8 +104,8 @@ function addStack() {
             let mass = w * boxHeight
             let inertia = mass * ( w ** 2 + boxHeight ** 2 ) / 12
 
-            // let x0 = canvas.width / 2 - stackWidth / 2 + boxWidth / 2
-            let x0 = canvas.width * 3 / 4 - stackWidth / 2 + boxWidth / 2
+            let x0 = canvas.width / 2 - stackWidth / 2 + boxWidth / 2
+            // let x0 = canvas.width * 3 / 4 - stackWidth / 2 + boxWidth / 2
             bodies.push( new Body( {
                 model: boxPolygon( w, boxHeight ),
                 position: new Vector(
@@ -121,9 +122,9 @@ function addStack() {
 mainLoop()
 function mainLoop() {
     clock.nextFrame()
-    render()
     if ( !toggleFlag ) {
-        for ( let i = 0; i < updatesPerFrame; i++ )
+        render()
+        for ( let i = 0; i < stepsPerFrame; i++ )
             updatePhysics()
         updateControl()
     }
@@ -136,7 +137,7 @@ function updateControl() {
             dragPoint = input.cursor
     } else if ( dragPoint ) {
         let size = 20
-        let mass = size ** 2 * 10
+        let mass = size ** 2 * 2
         let inertia = mass * size ** 2
         let position = dragPoint.copy()
         let velocity = projectileVelocity()
@@ -154,8 +155,8 @@ function updateControl() {
 function projectileVelocity() {
     if ( !dragPoint )
         return
-    const maxSpeed = 75
-    const maxDraw = 200
+    const maxSpeed = 1000
+    const maxDraw = 100
     let velocity = dragPoint.subtract( input.cursor )
     return velocity.unit_safe().scale( Math.min( velocity.length, maxDraw ) ).scale( maxSpeed / maxDraw )
 }
@@ -175,8 +176,11 @@ function updatePhysics() {
 function render() {
     Drawing.context = c
 
+    if ( toggleFlag )
+        c.globalAlpha = .7
     c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
+    c.globalAlpha = 1
     c.lineWidth = 2
     c.lineCap = "round"
     c.lineJoin = "round"
