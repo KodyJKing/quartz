@@ -24,30 +24,6 @@ export function boxPolygon( width, height ) {
     ]
 }
 
-export function polygonPath( c: CanvasRenderingContext2D, poly: Vector[], padding = 0 ) {
-    if ( poly.length == 0 )
-        return
-    const getPoint = i => {
-        if ( padding == 0 )
-            return poly[ i ]
-        let p0 = poly[ modulus( i - 1, poly.length ) ]
-        let p1 = poly[ i ]
-        let p2 = poly[ ( i + 1 ) % poly.length ]
-        let tangent1 = p1.subtract( p0 ).unit()
-        let tangent2 = p2.subtract( p1 ).unit()
-        let midNormal = tangent1.lerp( tangent2, .5 ).rightNormal().unit()
-        return p1.add( midNormal.scale( padding ) )
-    }
-    let pt = getPoint( 0 )
-    c.beginPath()
-    c.moveTo( pt.x, pt.y )
-    for ( let i = 1; i < poly.length; i++ ) {
-        pt = getPoint( i )
-        c.lineTo( pt.x, pt.y )
-    }
-    c.closePath()
-}
-
 export function initCanvas() {
     let canvas = document.getElementById( "mainCanvas" ) as HTMLCanvasElement
     updateCanvasResolution()

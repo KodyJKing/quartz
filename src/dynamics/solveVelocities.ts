@@ -1,4 +1,4 @@
-import Pair from "../collision/Pair"
+import { Pair } from "../collision/Collision"
 import Vector from "../math/Vector"
 
 export default function solveVelocities(

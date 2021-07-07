@@ -1,7 +1,6 @@
 import Clock from "../Clock"
-import getCollisionPairs from "../collision/getCollisionPairs"
-import Pair from "../collision/Pair"
-import { boxPolygon, initCanvas, polygon, polygonPath } from "../common"
+import { getCollisionPairs, Pair } from "../collision/Collision"
+import { boxPolygon, initCanvas, polygon } from "../common"
 import Body from "../dynamics/Body"
 import solvePositions from "../dynamics/solvePositions"
 import solveVelocities from "../dynamics/solveVelocities"
@@ -19,7 +18,8 @@ const offWhite = "#ebe6d1"
 const offWhiteDarker = "#d1ccb6"
 const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
-const timeStep = 1
+const updatesPerFrame = 10
+const timeStep = 1 / updatesPerFrame
 const gravity = .13
 const rotationalAirDrag = 1 // .99
 const linearAirDrag = 1 // .99
@@ -37,18 +37,21 @@ const positionalSolverOptions = {
     allowedPenetration: .2
 }
 
-const linearMotionThreshold = .1
-const angularMotionThreshold = .001
+const linearMotionThreshold = .1 / updatesPerFrame
+const angularMotionThreshold = .001 / updatesPerFrame
 
 const broadphaseCellSize = 100
 
 let dragPoint: Vector | undefined = undefined
 
 let toggleFlag = false
-window.addEventListener( "keypress", ev => {
+window.addEventListener( "keydown", ev => {
     if ( ev.key == " " ) {
         toggleFlag = !toggleFlag
-        console.log( { toggleFlag } )
+    } else if ( ev.key == "ArrowRight" ) {
+        updatePhysics()
+    } else if ( ev.key.toLocaleLowerCase() == "r" ) {
+        location.reload()
     }
 } )
 
@@ -82,8 +85,8 @@ const bodies: Body[] = [
 
 addStack()
 function addStack() {
-    let boxWidth = 120 * .8
-    let boxHeight = 60 * .8
+    let boxWidth = 120 * .5
+    let boxHeight = 60 * .5
     let columnPadding = 0
     let columns = 4
     let rows = 16
@@ -119,8 +122,11 @@ mainLoop()
 function mainLoop() {
     clock.nextFrame()
     render()
-    updatePhysics()
-    updateControl()
+    if ( !toggleFlag ) {
+        for ( let i = 0; i < updatesPerFrame; i++ )
+            updatePhysics()
+        updateControl()
+    }
     window.requestAnimationFrame( mainLoop )
 }
 
@@ -176,8 +182,7 @@ function render() {
     c.lineJoin = "round"
 
     for ( let body of bodies ) {
-        if ( !toggleFlag )
-            Drawing.polygon( body.vertices ).fill( body.color )
+        Drawing.polygon( body.vertices ).fill( body.color )
         Drawing.polygon( body.vertices, -2.5 ).stroke( body.outlineColor )
 
         // let p = body.position
@@ -197,22 +202,15 @@ function render() {
     if ( dragPoint ) {
         let m = input.cursor
         let p = dragPoint
-        let f = p.add( p.subtract( m ).scale( 1000 ) )
         Drawing.vLine( p, m ).stroke( "white" )
 
-        // Drawing.vLine( p, f ).stroke( "rgba(255, 255, 255, .2)" )
         let pos = p.copy()
         let vel = projectileVelocity() as Vector
-        // c.beginPath()
-        // c.moveTo( pos.x, pos.y )
         for ( let i = 0; i < 1000; i++ ) {
             vel = vel.addY( gravity * timeStep )
             pos = pos.add( vel.scale( timeStep ) )
-            // c.lineTo( pos.x, pos.y )
             Drawing.vCircle( pos, 2 ).fill( "white" )
         }
-        // c.strokeStyle = "rgba(255, 255, 255, .2)"
-        // c.stroke()
 
         Drawing.vCircle( p, 2 ).fill( "white" )
     }

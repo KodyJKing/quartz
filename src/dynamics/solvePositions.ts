@@ -1,4 +1,4 @@
-import Pair from "../collision/Pair"
+import { Pair } from "../collision/Collision"
 
 export default function solvePositions(
     pairs: Pair[], options: { iterations: number, positionalDamping: number, allowedPenetration: number }

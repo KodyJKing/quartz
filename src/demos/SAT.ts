@@ -1,6 +1,6 @@
 import Clock from "../Clock"
-import SAT from "../collision/SAT"
-import { initCanvas, polygon, polygonPath } from "../common"
+import { getCollisionPairs, SAT } from "../collision/Collision"
+import { initCanvas, polygon } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
