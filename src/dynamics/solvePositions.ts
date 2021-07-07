@@ -9,15 +9,15 @@ export default function solvePositions(
             let { bodyA, bodyB, info } = pair
             let { normal, separation } = info
 
-            if ( separation > 0 )
-                continue
-
             let massA = bodyA.mass
             let massB = bodyB.mass
 
             let correctedDisplacement = normal.dot( bodyB.positionalCorrection.subtract( bodyA.positionalCorrection ) )
 
             let displacement = ( -separation - correctedDisplacement - allowedPenetration ) * positionalDamping
+            if ( displacement < 0 )
+                continue
+
             let massRatio = massB / massA
             let displacementB = displacement / ( 1 + massRatio )
             let displacementA = displacement - displacementB
