@@ -28,12 +28,13 @@ const wallThickness = 80
 const velocitySolverOptions = {
     iterations: 100,
     minBounceVelocity: 0,
-    restitution: .1,
-    coefficientOfFriction: .2
+    restitution: .3,
+    coefficientOfFriction: .1
 }
 const positionalSolverOptions = {
     iterations: 10,
-    positionalDamping: .25
+    positionalDamping: .25,
+    allowedPenetration: .2
 }
 
 const linearMotionThreshold = .1
@@ -177,7 +178,7 @@ function render() {
     for ( let body of bodies ) {
         if ( !toggleFlag )
             Drawing.polygon( body.vertices ).fill( body.color )
-        Drawing.polygon( body.vertices, -2 ).stroke( body.outlineColor )
+        Drawing.polygon( body.vertices, -2.5 ).stroke( body.outlineColor )
 
         // let p = body.position
         // Drawing.circle( p, 3 ).fill( offWhite )
@@ -188,8 +189,8 @@ function render() {
     // for ( let pair of pairs ) {
     //     let n = pair.info.normal.scale( 5 )
     //     for ( let p of pair.info.contact ) {
-    //         Drawing.circle( p, 2 ).fill( offWhite )
-    //         Drawing.line( p.subtract( n ), p.add( n ) ).stroke( "rgba(255, 255, 255, .5)" )
+    //         Drawing.vCircle( p, 2 ).fill( offWhite )
+    //         Drawing.vLine( p.subtract( n ), p.add( n ) ).stroke( "rgba(255, 255, 255, .5)" )
     //     }
     // }
 

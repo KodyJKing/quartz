@@ -1,9 +1,9 @@
 import Pair from "../collision/Pair"
 
 export default function solvePositions(
-    pairs: Pair[], options: { iterations: number, positionalDamping: number }
+    pairs: Pair[], options: { iterations: number, positionalDamping: number, allowedPenetration: number }
 ) {
-    let { iterations, positionalDamping } = options
+    let { iterations, positionalDamping, allowedPenetration } = options
     for ( let i = 0; i < iterations; i++ ) {
         for ( let pair of pairs ) {
             let { bodyA, bodyB, info } = pair
@@ -17,7 +17,7 @@ export default function solvePositions(
 
             let correctedDisplacement = normal.dot( bodyB.positionalCorrection.subtract( bodyA.positionalCorrection ) )
 
-            let displacement = ( -separation - correctedDisplacement ) * positionalDamping
+            let displacement = ( -separation - correctedDisplacement - allowedPenetration ) * positionalDamping
             let massRatio = massB / massA
             let displacementB = displacement / ( 1 + massRatio )
             let displacementA = displacement - displacementB

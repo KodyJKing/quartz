@@ -28,17 +28,18 @@ export default function generateContacts( supportA: SupportFunction, supportB: S
     if ( upperExtent - lowerExtent < 1 )
         return [ upperContact ]
 
+
+    // if ( Math.random() < .5 )
+    //     return [ upperContact, lowerContact ]
+    // else
+    //     return [ lowerContact, upperContact ]
+
     // return [ upperContact, lowerContact ]
 
     if ( Math.random() < .5 )
-        return [ upperContact, lowerContact ]
+        return [ upperContact.lerp( lowerContact, .5 ), upperContact, lowerContact ]
     else
-        return [ lowerContact, upperContact ]
-
-    // if ( Math.random() < .5 )
-    //     return [ upperContact.lerp( lowerContact, .5 ), upperContact, lowerContact ]
-    // else
-    //     return [ upperContact.lerp( lowerContact, .5 ), lowerContact, upperContact ]
+        return [ upperContact.lerp( lowerContact, .5 ), lowerContact, upperContact ]
 
     // return [ upperContact.lerp( lowerContact, .5 ), upperContact, lowerContact ]
 

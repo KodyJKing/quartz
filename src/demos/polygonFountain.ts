@@ -34,7 +34,8 @@ const velocitySolverOptions = {
 }
 const positionalSolverOptions = {
     iterations: 10,
-    positionalDamping: .25
+    positionalDamping: .25,
+    allowedPenetration: 0
 }
 
 const broadphaseCellSize = 200
