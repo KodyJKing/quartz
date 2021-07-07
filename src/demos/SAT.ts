@@ -1,6 +1,6 @@
 import Clock from "../Clock"
 import { getCollisionPairs, SAT } from "../collision/Collision"
-import { initCanvas, polygon } from "../common"
+import { boxPolygon, initCanvas, polygon } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
@@ -32,34 +32,34 @@ function render() {
     c.fillStyle = "#ebe6d1"
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
+    let t = performance.now() / 1000
+    let timeScale = 0.25
+
     let { x, y } = input.cursor
     // let matA = Matrix.transformation( 0, 0, Math.PI / 4, 1, 1, x, y )
     let matA = [
         Matrix.translation( 500, 500 ),
-        Matrix.rotation( performance.now() / 1000 ),
-        Matrix.translation( 200, 0 ),
-        Matrix.rotation( performance.now() / 1100 ),
-        Matrix.scale( 2, 1 )
+        Matrix.rotation( t * timeScale ),
+        Matrix.translation( 130, 0 ),
+        Matrix.rotation( t * timeScale / 1.1 ),
+        Matrix.scale( 1, 1 )
     ].reduce( ( a, b ) => a.multiply( b ) )
-    let polyA = [
-        new Vector( -100, -100 ),
-        new Vector( 100, -100 ),
-        new Vector( 100, 100 ),
-        new Vector( -100, 100 ),
-    ].map( v => matA.multiplyVec( v ) )
+    let polyA = boxPolygon( 200, 200 ).map( v => matA.multiplyVec( v ) )
     let matB = Matrix.translation( 500, 500 )
     let polyB = polygon( 6, 50 ).map( v => matB.multiplyVec( v ) )
 
     let contactInfo = SAT( polyA, polyB )
+    let isTouching = contactInfo.separation <= 0
 
-    if ( contactInfo.separation <= 0 )
+    if ( isTouching )
         c.globalAlpha = .5
     Drawing.polygon( polyA ).fill( colorPalette[ 3 ] )
     Drawing.polygon( polyB ).fill( colorPalette[ 4 ] )
     c.globalAlpha = 1
 
-    for ( let v of contactInfo.contact )
-        Drawing.vCircle( v, 4 ).fill( colorPalette[ 1 ] )
+    if ( isTouching )
+        for ( let v of contactInfo.contact )
+            Drawing.vCircle( v, 4 ).fill( colorPalette[ 1 ] )
 
     c.fillStyle = "red"
     c.font = "24px Impact"
