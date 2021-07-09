@@ -1,9 +1,6 @@
 import Clock from "../Clock"
-import { getCollisionPairs, Pair } from "../collision/Collision"
-import { boxPolygon, initCanvas, notQuiteInfiniteMass, polygon } from "../common"
+import { boxPolygon, initCanvas, polygon } from "../common"
 import Body from "../dynamics/Body"
-import solvePositions from "../dynamics/solvePositions"
-import solveVelocities from "../dynamics/solveVelocities"
 import Input from "../Input"
 import Vector from "../math/Vector"
 import Drawing from "../graphics/Drawing"
@@ -11,7 +8,6 @@ import PolygonCollider from "../collision/PolygonCollider"
 import CircleCollider from "../collision/CircleCollider"
 import ICollider from "../collision/ICollider"
 import Engine from "../Engine"
-import { generateKeyPairSync } from "crypto"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
