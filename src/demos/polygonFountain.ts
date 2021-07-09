@@ -92,9 +92,9 @@ function setupBodies() {
     for ( let body of staticBodies )
         engine.bodies.push( body )
 
-    for ( let i = 0; i < 1500; i++ ) {
+    for ( let i = 0; i < 1000; i++ ) {
         // let radius = 20 // (40 + (Math.random() - .5) * 20)
-        let radius = ( Math.random() * 10 + 20 ) * .7
+        let radius = ( Math.random() * 10 + 20 ) * .825
         let mass = radius ** 2
         let inertia = mass * radius ** 2 * .5
         let collider: ICollider
@@ -106,7 +106,7 @@ function setupBodies() {
             collider,
             // model: polygon( 5, radius ),
             position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
-            // angularVelocity: ( Math.random() - .5 ),
+            angularVelocity: ( Math.random() - .5 ),
             velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 20 ),
             mass, inertia,
             color: randomColor()
