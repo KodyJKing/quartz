@@ -1,3 +1,8 @@
+/* 
+    This demo is redundant because the engine now supports circle and polygon colliders together.
+    It's still nice to keep this for comparison. Ideally further abstractions shouldn't
+    hurt the pure circle on circle performance and stability.
+*/
 import Clock from "../Clock"
 import Broadphase from "../collision/Broadphase"
 import { initCanvas, notQuiteInfiniteMass } from "../common"

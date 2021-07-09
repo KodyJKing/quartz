@@ -1,5 +1,5 @@
 import Clock from "../Clock"
-import { boxPolygon, initCanvas, polygon } from "../common"
+import { boxPolygon, initCanvas, notQuiteInfiniteMass, polygon } from "../common"
 import Body from "../dynamics/Body"
 import Input from "../Input"
 import Vector from "../math/Vector"
@@ -23,7 +23,7 @@ const timeStep = 1
 const wallThickness = 80
 const engine = new Engine( {
     timeStep: 1,
-    gravity: .13,
+    gravity: 0.07,
     linearAirDrag: 1,
     rotationalAirDrag: 1,
     linearMotionThreshold: .1,
@@ -31,20 +31,20 @@ const engine = new Engine( {
     velocitySolverOptions: {
         iterations: 30,
         minBounceVelocity: 0,
-        restitution: .1,
+        restitution: .3,
         coefficientOfFriction: .0
     },
     positionalSolverOptions: {
-        iterations: 10,
+        iterations: 7,
         positionalDamping: .25,
         allowedPenetration: 0
     },
     broadphaseCellSize: 100
 } )
 
-let toggleFlag = false
+let dontRender = false
 window.addEventListener( "keypress", ev => {
-    if ( ev.key == " " ) toggleFlag = !toggleFlag
+    if ( ev.key == " " ) dontRender = !dontRender
 } )
 
 setupBodies()
@@ -92,12 +92,13 @@ function setupBodies() {
     for ( let body of staticBodies )
         engine.bodies.push( body )
 
-    for ( let i = 0; i < 1000; i++ ) {
-        let radius = 20 // (40 + (Math.random() - .5) * 20)
+    for ( let i = 0; i < 1500; i++ ) {
+        // let radius = 20 // (40 + (Math.random() - .5) * 20)
+        let radius = ( Math.random() * 10 + 20 ) * .7
         let mass = radius ** 2
         let inertia = mass * radius ** 2 * .5
         let collider: ICollider
-        if ( Math.random() < 1 / 7 )
+        if ( Math.random() < .5 )
             collider = new CircleCollider( radius * .8 )
         else
             collider = new PolygonCollider( polygon( Math.floor( Math.random() * 6 ) + 3, radius ) )
@@ -105,7 +106,7 @@ function setupBodies() {
             collider,
             // model: polygon( 5, radius ),
             position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
-            angularVelocity: ( Math.random() - .5 ),
+            // angularVelocity: ( Math.random() - .5 ),
             velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 20 ),
             mass, inertia,
             color: randomColor()
@@ -161,7 +162,8 @@ function render() {
     c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
-    engine.renderToCanvas( c, {} )
+    if ( !dontRender )
+        engine.renderToCanvas( c )
 
     c.fillStyle = "red"; c.font = "24px Impact"
     c.fillText( "FPS: " + clock.averageFPS.toFixed( 2 ), 2, 22 )
