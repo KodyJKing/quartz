@@ -11,16 +11,13 @@ export default class Vector {
         this.x = x
         this.y = y
     }
-    get length() { return Math.sqrt( this.x ** 2 + this.y ** 2 ) }
-    get lengthSquared() { return this.x * this.x + this.y * this.y }
-    get angle() { return Math.atan2( this.y, this.x ) }
-
-    getLengthSquared() { return this.x * this.x + this.y * this.y }
+    length() { return Math.sqrt( this.x ** 2 + this.y ** 2 ) }
+    lengthSquared() { return this.x * this.x + this.y * this.y }
+    angle() { return Math.atan2( this.y, this.x ) }
 
     equivalent( other: Vector ) { return equals( this.x, other.x ) && equals( this.y, other.y ) }
 
-    unit() { return this.scale( 1 / this.length ) }
-    unit_safe() { return this.scale( 1 / Math.max( this.length, 1e-10 ) ) }
+    unit() { return this.scale( 1 / Math.max( this.length(), 1e-10 ) ) }
     leftNormal() { return new Vector( -this.y, this.x ) }
     rightNormal() { return new Vector( this.y, -this.x ) }
     negate() { return new Vector( -this.x, -this.y ) }
@@ -74,7 +71,7 @@ export default class Vector {
     }
 
     complexQuotient( other: Vector ) {
-        let lengthSquared = other.lengthSquared
+        let lengthSquared = other.lengthSquared()
         let x = this.x * other.x + this.y * other.y
         let y = this.y * other.x - this.x * other.y
         return new Vector( x / lengthSquared, y / lengthSquared )
@@ -86,7 +83,12 @@ export default class Vector {
     }
 
     projection( other: Vector ) {
-        return other.scale( other.dot( this ) / other.lengthSquared )
+        return other.scale( other.dot( this ) / other.lengthSquared() )
+    }
+
+    projectToLine( normal: Vector, distance: number ) {
+        let heightAboveLine = this.dot( normal ) - distance
+        return this.subtract( normal.scale( heightAboveLine ) )
     }
 
     static polar( angle, length ) {
@@ -102,5 +104,5 @@ export default class Vector {
     hot_scale( scale: number, target: Vector ) { return target.set( this.x * scale, this.y * scale ) }
     hot_leftNormal( target: Vector ) { return target.set( -this.y, this.x ) }
     hot_rightNormal( target: Vector ) { return target.set( this.y, -this.x ) }
-    hot_unit( target: Vector ) { let scale = 1 / this.length; return target.set( this.x * scale, this.y * scale ) }
+    hot_unit( target: Vector ) { let scale = 1 / this.length(); return target.set( this.x * scale, this.y * scale ) }
 }

@@ -1,3 +1,8 @@
+/* 
+    This demo is redundant because the engine now supports circle and polygon colliders together.
+    It's still nice to keep this for comparison. Ideally further abstractions shouldn't
+    hurt the pure circle on circle performance and stability.
+*/
 import Clock from "../Clock"
 import Broadphase from "../collision/Broadphase"
 import { initCanvas, notQuiteInfiniteMass } from "../common"
@@ -137,7 +142,7 @@ function update() {
                 vel.y += timeStep * gravity
             if ( input.mouse.get( 0 ) ) {
                 let diff = input.cursor.subtract( pos )
-                let length = Math.max( diff.length, 50 )
+                let length = Math.max( diff.length(), 50 )
                 diff = diff.scale( -50000000 / length ** 3 )
                 vel.x += timeStep * diff.x
                 vel.y += timeStep * diff.y
@@ -236,7 +241,7 @@ function generateCollisions() {
         }
     }
 
-    Broadphase.findPairs( bodies, canvas.width, canvas.height, gridCellSize, ( bodyA, bodyB ) => {
+    Broadphase.findPairs( bodies, gridCellSize, ( bodyA, bodyB ) => {
         let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
         if ( penetration() < 0 ) return
         let normal = bodyB.pos.subtract( bodyA.pos ).unit()

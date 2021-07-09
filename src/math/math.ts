@@ -30,6 +30,11 @@ export function lerp( start: number, end: number, alpha: number ) {
     return ( end - start ) * alpha + start
 }
 
+export function remap( min1: number, max1: number, min2: number, max2: number, x ) {
+    let alpha = ( x - min1 ) / ( max1 - min1 )
+    return lerp( min2, max2, alpha )
+}
+
 export function modulus( quotient: number, divisor: number ) {
     return ( ( quotient % divisor ) + divisor ) % divisor
 }

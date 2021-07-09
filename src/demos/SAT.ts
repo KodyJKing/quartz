@@ -1,5 +1,5 @@
 import Clock from "../Clock"
-import { getCollisionPairs, SAT } from "../collision/Collision"
+import { polygonVsPolygon } from "../collision/Collision"
 import { boxPolygon, initCanvas, polygon } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"
@@ -29,6 +29,9 @@ function mainLoop() {
 function render() {
     Drawing.context = c
 
+    c.lineWidth = 2
+    c.lineCap = "round"
+
     c.fillStyle = "#ebe6d1"
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
@@ -45,10 +48,10 @@ function render() {
         Matrix.scale( 1, 1 )
     ].reduce( ( a, b ) => a.multiply( b ) )
     let polyA = boxPolygon( 200, 200 ).map( v => matA.multiplyVec( v ) )
-    let matB = Matrix.translation( 500, 500 )
+    let matB = Matrix.transformation( 0, 0, Math.PI / 6, 1, 1, 500, 500 )
     let polyB = polygon( 6, 50 ).map( v => matB.multiplyVec( v ) )
 
-    let contactInfo = SAT( polyA, polyB )
+    let contactInfo = polygonVsPolygon( polyA, polyB )
     let isTouching = contactInfo.separation <= 0
 
     if ( isTouching )
@@ -57,9 +60,12 @@ function render() {
     Drawing.polygon( polyB ).fill( colorPalette[ 4 ] )
     c.globalAlpha = 1
 
-    if ( isTouching )
-        for ( let v of contactInfo.contact )
+    if ( isTouching ) {
+        for ( let v of contactInfo.contact ) {
             Drawing.vCircle( v, 4 ).fill( colorPalette[ 1 ] )
+            Drawing.vLine( v, v.add( contactInfo.normal.scale( 10 ) ) ).stroke( colorPalette[ 1 ] )
+        }
+    }
 
     c.fillStyle = "red"
     c.font = "24px Impact"

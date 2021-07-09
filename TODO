@@ -7,8 +7,10 @@
 
 - Implement more realistic and stable friction. Support static friction.
 
-- Improve velocity solver stability. Use box stacking with disturbances as a test of stability.
+- Improve velocity solver stability. Use box stacking as a test of stability.
     - Option 1: Explore block solvers further to see if they can yield better stability than using three contacts per touching face.
     - Option 2: Apply some damping to impulses each iteration. 
         - This seems to work well for the positional solver. It seems to allow convergence to a decent compromise solution.
         - This approach requires restitution to be applied in a final step rather than each iteration.
+
+- Remove vector mutation in a new branch and compare performance.

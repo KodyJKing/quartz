@@ -18,6 +18,9 @@ export default class AABB {
         return new AABB( pos.x, pos.y, pos.x + dimensions.x, pos.y + dimensions.y )
     }
 
+    width() { return this.maxx - this.minx }
+    height() { return this.maxy - this.miny }
+
     hull( a: AABB, b: AABB ) {
         function min( x, y ) { return Math.min( x, y ) }
         function max( x, y ) { return Math.max( x, y ) }
