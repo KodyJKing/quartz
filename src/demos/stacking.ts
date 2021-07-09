@@ -7,6 +7,8 @@ import solveVelocities from "../dynamics/solveVelocities"
 import Input from "../Input"
 import Vector from "../math/Vector"
 import Drawing from "../graphics/Drawing"
+import PolygonCollider from "../collision/PolygonCollider"
+import CircleCollider from "../collision/CircleCollider"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -59,25 +61,25 @@ window.addEventListener( "keydown", ev => {
 let pairs: Pair[] = []
 const bodies: Body[] = [
     new Body( {
-        model: boxPolygon( canvas.width, wallThickness ),
+        collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
         position: new Vector( canvas.width / 2, canvas.height ),
         isStatic: true,
         color: offWhiteDarker
     } ),
     // new Body( {
-    //     model: boxPolygon( canvas.width, wallThickness ),
+    //     collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
     //     position: new Vector( canvas.width / 2, 0 ),
     //     isStatic: true,
     //     color: offWhiteDarker
     // } ),
     // new Body( {
-    //     model: boxPolygon( wallThickness, canvas.height ),
+    //     collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
     //     position: new Vector( canvas.width, canvas.height / 2 ),
     //     isStatic: true,
     //     color: offWhiteDarker
     // } ),
     // new Body( {
-    //     model: boxPolygon( wallThickness, canvas.height ),
+    //     collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
     //     position: new Vector( 0, canvas.height / 2 ),
     //     isStatic: true,
     //     color: offWhiteDarker
@@ -107,7 +109,7 @@ function addStack() {
             let x0 = canvas.width / 2 - stackWidth / 2 + boxWidth / 2
             // let x0 = canvas.width * 3 / 4 - stackWidth / 2 + boxWidth / 2
             bodies.push( new Body( {
-                model: boxPolygon( w, boxHeight ),
+                collider: new PolygonCollider( boxPolygon( w, boxHeight ) ),
                 position: new Vector(
                     x0 + j * ( boxWidth + columnPadding ) + dx,
                     canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
@@ -142,7 +144,7 @@ function updateControl() {
         let position = dragPoint.copy()
         let velocity = projectileVelocity()
         let projectile = new Body( {
-            model: polygon( 100, size ),
+            collider: new CircleCollider( size ),
             position, velocity,
             mass, inertia,
             color: "#4a3648"
@@ -186,8 +188,13 @@ function render() {
     c.lineJoin = "round"
 
     for ( let body of bodies ) {
-        Drawing.polygon( body.vertices ).fill( body.color )
-        Drawing.polygon( body.vertices, -2.5 ).stroke( body.outlineColor )
+        if ( body.collider instanceof PolygonCollider ) {
+            Drawing.polygon( body.collider.vertices ).fill( body.color )
+            Drawing.polygon( body.collider.vertices, -2.5 ).stroke( body.outlineColor )
+        } else if ( body.collider instanceof CircleCollider ) {
+            Drawing.vCircle( body.position, body.collider.radius ).fill( body.color )
+            Drawing.vCircle( body.position, body.collider.radius - 2.5 ).stroke( body.outlineColor )
+        }
 
         // let p = body.position
         // Drawing.circle( p, 3 ).fill( offWhite )
