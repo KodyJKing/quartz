@@ -10,6 +10,8 @@ import Drawing from "../graphics/Drawing"
 import PolygonCollider from "../collision/PolygonCollider"
 import CircleCollider from "../collision/CircleCollider"
 import ICollider from "../collision/ICollider"
+import Engine from "../Engine"
+import { generateKeyPairSync } from "crypto"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -22,95 +24,78 @@ const offWhiteDarker = "#d1ccb6"
 const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
 const timeStep = 1
-const gravity = .13
-const rotationalAirDrag = 1 // .99
-const linearAirDrag = 1 // .99
 const wallThickness = 80
-
-const velocitySolverOptions = {
-    iterations: 30,
-    minBounceVelocity: 0,
-    restitution: .1,
-    coefficientOfFriction: .0
-}
-const positionalSolverOptions = {
-    iterations: 10,
-    positionalDamping: .25,
-    allowedPenetration: 0
-}
-
-const broadphaseCellSize = 100
+const engine = new Engine( {
+    timeStep: 1,
+    gravity: .13,
+    linearAirDrag: 1,
+    rotationalAirDrag: 1,
+    linearMotionThreshold: .1,
+    angularMotionThreshold: .001,
+    velocitySolverOptions: {
+        iterations: 30,
+        minBounceVelocity: 0,
+        restitution: .1,
+        coefficientOfFriction: .0
+    },
+    positionalSolverOptions: {
+        iterations: 10,
+        positionalDamping: .25,
+        allowedPenetration: 0
+    },
+    broadphaseCellSize: 100
+} )
 
 let toggleFlag = false
 window.addEventListener( "keypress", ev => {
-    if ( ev.key == " " ) {
-        toggleFlag = !toggleFlag
-        console.log( { toggleFlag } )
-    }
+    if ( ev.key == " " ) toggleFlag = !toggleFlag
 } )
 
-let pairs: Pair[] = []
-const bodies: Body[] = [
-    new Body( {
-        collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
-        position: new Vector( canvas.width / 2, canvas.height ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
+setupBodies()
+function setupBodies() {
+    const staticBodies = [
+        new Body( {
+            collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
+            position: new Vector( canvas.width / 2, canvas.height ),
+            isStatic: true,
+            color: offWhiteDarker
+        } ),
 
-    new Body( {
-        collider: new CircleCollider( 100 ),
-        // collider: new PolygonCollider( polygon( 50, 100 ) ),
-        position: new Vector( canvas.width / 2, canvas.height / 4 ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
-    new Body( {
-        collider: new CircleCollider( 100 ),
-        // collider: new PolygonCollider( polygon( 50, 100 ) ),
-        position: new Vector( canvas.width / 2 - 200, canvas.height / 2 ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
-    new Body( {
-        collider: new CircleCollider( 100 ),
-        // collider: new PolygonCollider( polygon( 50, 100 ) ),
-        position: new Vector( canvas.width / 2 + 200, canvas.height / 2 ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
-    new Body( {
-        collider: new CircleCollider( 100 ),
-        // collider: new PolygonCollider( polygon( 50, 100 ) ),
-        position: new Vector( 0, canvas.height ),
-        isStatic: true,
-        color: offWhiteDarker
-    } ),
-    new Body( {
-        collider: new CircleCollider( 100 ),
-        // collider: new PolygonCollider( polygon( 50, 100 ) ),
-        position: new Vector( canvas.width, canvas.height ),
-        isStatic: true,
-        color: offWhiteDarker
-    } )
+        new Body( {
+            collider: new CircleCollider( 100 ),
+            position: new Vector( canvas.width / 2, canvas.height / 4 ),
+            isStatic: true,
+            color: offWhiteDarker
+        } ),
+        new Body( {
+            collider: new CircleCollider( 100 ),
+            position: new Vector( canvas.width / 2 - 200, canvas.height / 2 ),
+            isStatic: true,
+            color: offWhiteDarker
+        } ),
+        new Body( {
+            collider: new CircleCollider( 100 ),
+            position: new Vector( canvas.width / 2 + 200, canvas.height / 2 ),
+            isStatic: true,
+            color: offWhiteDarker
+        } ),
+        new Body( {
+            collider: new CircleCollider( 100 ),
+            position: new Vector( 0, canvas.height ),
+            isStatic: true,
+            color: offWhiteDarker
+        } ),
+        new Body( {
+            collider: new CircleCollider( 100 ),
+            position: new Vector( canvas.width, canvas.height ),
+            isStatic: true,
+            color: offWhiteDarker
+        } )
+    ]
 
-    // new Body( {
-    //     collider: new CircleCollider( 100 ),
-    //     position: new Vector( canvas.width / 2, canvas.height / 2 ),
-    //     isStatic: true,
-    //     color: offWhiteDarker
-    // } ),
-    // new Body( {
-    //     collider: new PolygonCollider( boxPolygon( 500, 20 ) ),
-    //     // collider: new PolygonCollider( polygon( 4, 30 ) ),
-    //     position: new Vector( canvas.width / 2, canvas.height * 1 / 3 ),
-    //     mass: 1, inertia: ( 500 ** 2 + 20 ** 2 ) / 12,
-    //     color: offWhiteDarker
-    // } )
-]
+    for ( let body of staticBodies )
+        engine.bodies.push( body )
 
-addRandomShapes()
-function addRandomShapes() {
     for ( let i = 0; i < 1000; i++ ) {
         let radius = 20 // (40 + (Math.random() - .5) * 20)
         let mass = radius ** 2
@@ -120,7 +105,7 @@ function addRandomShapes() {
             collider = new CircleCollider( radius * .8 )
         else
             collider = new PolygonCollider( polygon( Math.floor( Math.random() * 6 ) + 3, radius ) )
-        bodies.push( new Body( {
+        engine.bodies.push( new Body( {
             collider,
             // model: polygon( 5, radius ),
             position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
@@ -141,16 +126,13 @@ function mainLoop() {
 }
 
 function update() {
-    for ( let body of bodies ) {
+    for ( let body of engine.bodies ) {
         if ( body.isStatic )
             continue
 
-        body.updatePosition( timeStep )
-        body.updateVelocity( timeStep, gravity, rotationalAirDrag, linearAirDrag )
-
         // Zero-gravity when right-clicking.
         if ( input.mouse.get( 2 ) )
-            body.velocity.y -= gravity * timeStep
+            body.velocity.y -= engine.options.gravity * timeStep
 
         // Repel when left-clicking.
         if ( input.mouse.get( 0 ) ) {
@@ -174,10 +156,7 @@ function update() {
             body.collider.onUpdatePosition()
         }
     }
-
-    pairs = getCollisionPairs( bodies, broadphaseCellSize )
-    solveVelocities( pairs, velocitySolverOptions )
-    solvePositions( pairs, positionalSolverOptions )
+    engine.fixedUpdate()
 }
 
 function render() {
@@ -185,46 +164,11 @@ function render() {
 
     c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
-    c.lineWidth = 2
-    c.lineCap = "round"
-    c.lineJoin = "round"
 
-    if ( !toggleFlag )
-        for ( let body of bodies ) {
+    engine.renderToCanvas( c, {} )
 
-            if ( body.collider instanceof PolygonCollider )
-                Drawing.polygon( body.collider.vertices ).fill( body.color )
-            if ( body.collider instanceof CircleCollider )
-                Drawing.vCircle( body.position, body.collider.radius ).fill( body.color )
-
-            // let p = body.position
-            // Drawing.circle( p, 3 ).fill( offWhite )
-            // let h = Vector.polar( body.angle, 10 )
-            // Drawing.line( p, p.add( h ) ).stroke( offWhite )
-        }
-
-    // for ( let pair of pairs ) {
-    //     // let n = pair.info.normal.scale( 5 )
-    //     // for ( let p of pair.info.contact ) {
-    //     //     Drawing.vCircle( p, 2 ).fill( offWhite )
-    //     //     Drawing.vLine( p.subtract( n ), p.add( n ) ).stroke( "rgba(255, 255, 255, .5)" )
-    //     // }
-    //     let { bodyA, bodyB } = pair
-    //     if ( bodyA.isStatic || bodyB.isStatic )
-    //         continue
-    //     let posA = bodyA.position, posB = bodyB.position
-    //     Drawing.vLine( posA, posB ).stroke( "white" )
-    // }
-
-    c.fillStyle = "red"
-    c.font = "24px Impact"
+    c.fillStyle = "red"; c.font = "24px Impact"
     c.fillText( "FPS: " + clock.averageFPS.toFixed( 2 ), 2, 22 )
-
-    if ( pairs.length > 0 ) {
-        let netPenetration = pairs.map( x => Math.max( 0, -x.info.separation ) ).reduce( ( a, b ) => a + b )
-        let avergaePenetration = netPenetration / pairs.length
-        c.fillStyle = "blue"
-        c.font = "24px Impact"
-        c.fillText( "Average penetration: " + avergaePenetration.toFixed( 2 ), 2, 22 * 2 )
-    }
+    c.fillStyle = "blue"; c.font = "24px Impact"
+    c.fillText( "Average penetration: " + engine.averagePenetration().toFixed( 2 ), 2, 22 * 2 )
 }

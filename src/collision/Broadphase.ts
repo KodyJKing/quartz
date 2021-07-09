@@ -19,9 +19,10 @@ export default class Broadphase {
         const y_to_j = ( y: number ) => clamp( 0, gridHeight - 1, Math.floor( remap( bounds.miny, bounds.maxy, 0, gridHeight - 1, y ) ) )
 
         type GridCell = T[]
-        const grid: GridCell[] = []
-        for ( let i = 0; i < gridWidth * gridHeight; i++ )
-            grid.push( [] )
+        const grid = new Map<number, GridCell>()
+        // const grid: GridCell[] = []
+        // for ( let i = 0; i < gridWidth * gridHeight; i++ )
+        //     grid.push( [] )
 
         // Place bodies in grid.
         for ( let body of bodies ) {
@@ -33,7 +34,9 @@ export default class Broadphase {
             for ( let i = i1; i <= i2; i++ ) {
                 for ( let j = j1; j <= j2; j++ ) {
                     let cellIndex = i * gridHeight + j
-                    grid[ cellIndex ].push( body )
+                    if ( !grid.has( cellIndex ) )
+                        grid.set( cellIndex, [] )
+                    grid.get( cellIndex )?.push( body )
                 }
             }
         }
@@ -41,32 +44,55 @@ export default class Broadphase {
 
         let visitedPairs = new Set<number>()
 
-        // Iterate over grid to generate pairs.
-        for ( let i = 0; i < gridWidth; i++ ) {
-            for ( let j = 0; j < gridHeight; j++ ) {
-                let cellIndex = i * gridHeight + j
-                let gridCell = grid[ cellIndex ]
-                for ( let iBodyA = 0; iBodyA < gridCell.length; iBodyA++ ) {
-                    let bodyA = gridCell[ iBodyA ]
-                    let boundsA = bodyA.getBounds()
-                    for ( let iBodyB = iBodyA + 1; iBodyB < gridCell.length; iBodyB++ ) {
-                        let bodyB = gridCell[ iBodyB ]
+        for ( let gridCell of grid.values() ) {
+            for ( let iBodyA = 0; iBodyA < gridCell.length; iBodyA++ ) {
+                let bodyA = gridCell[ iBodyA ]
+                let boundsA = bodyA.getBounds()
+                for ( let iBodyB = iBodyA + 1; iBodyB < gridCell.length; iBodyB++ ) {
+                    let bodyB = gridCell[ iBodyB ]
 
-                        let boundsB = bodyB.getBounds()
-                        if ( !boundsA.overlaps( boundsB ) )
-                            continue
+                    let boundsB = bodyB.getBounds()
+                    if ( !boundsA.overlaps( boundsB ) )
+                        continue
 
-                        // Check if pair has been visited.
-                        let minId = Math.min( bodyA.id, bodyB.id )
-                        let maxId = Math.max( bodyA.id, bodyB.id )
-                        let pairKey = ( maxId << 16 ) | minId
-                        if ( visitedPairs.has( pairKey ) ) continue
-                        visitedPairs.add( pairKey )
+                    // Check if pair has been visited.
+                    let minId = Math.min( bodyA.id, bodyB.id )
+                    let maxId = Math.max( bodyA.id, bodyB.id )
+                    let pairKey = ( maxId << 16 ) | minId
+                    if ( visitedPairs.has( pairKey ) ) continue
+                    visitedPairs.add( pairKey )
 
-                        callback( bodyA, bodyB )
-                    }
+                    callback( bodyA, bodyB )
                 }
             }
         }
+
+        // // Iterate over grid to generate pairs.
+        // for ( let i = 0; i < gridWidth; i++ ) {
+        //     for ( let j = 0; j < gridHeight; j++ ) {
+        //         let cellIndex = i * gridHeight + j
+        //         let gridCell = grid[ cellIndex ]
+        //         for ( let iBodyA = 0; iBodyA < gridCell.length; iBodyA++ ) {
+        //             let bodyA = gridCell[ iBodyA ]
+        //             let boundsA = bodyA.getBounds()
+        //             for ( let iBodyB = iBodyA + 1; iBodyB < gridCell.length; iBodyB++ ) {
+        //                 let bodyB = gridCell[ iBodyB ]
+
+        //                 let boundsB = bodyB.getBounds()
+        //                 if ( !boundsA.overlaps( boundsB ) )
+        //                     continue
+
+        //                 // Check if pair has been visited.
+        //                 let minId = Math.min( bodyA.id, bodyB.id )
+        //                 let maxId = Math.max( bodyA.id, bodyB.id )
+        //                 let pairKey = ( maxId << 16 ) | minId
+        //                 if ( visitedPairs.has( pairKey ) ) continue
+        //                 visitedPairs.add( pairKey )
+
+        //                 callback( bodyA, bodyB )
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
