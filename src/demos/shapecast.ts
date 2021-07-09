@@ -38,6 +38,9 @@ function mainLoop() {
 function render() {
     Drawing.context = c
 
+    c.lineWidth = 2
+    c.lineCap = "round"
+
     c.fillStyle = "#ebe6d1"
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
@@ -79,8 +82,11 @@ function render() {
         Drawing.polygon( sampleSupport( 100, supportA2 ) ).fill( colorPalette[ 2 ] )
         Drawing.polygon( sampleSupport( 100, supportB2 ) ).fill( colorPalette[ 3 ] )
         c.globalAlpha = 1
-        for ( let p of contacts )
+        for ( let p of contacts ) {
+            let n = normal.scale( 5 )
             Drawing.vCircle( p, 2 ).fill( colorPalette[ 1 ] )
+            Drawing.vLine( p.add( n ), p.subtract( n ) ).stroke( colorPalette[ 1 ] )
+        }
     }
 
     c.fillStyle = "red"
