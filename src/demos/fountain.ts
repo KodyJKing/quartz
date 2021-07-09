@@ -137,7 +137,7 @@ function update() {
                 vel.y += timeStep * gravity
             if ( input.mouse.get( 0 ) ) {
                 let diff = input.cursor.subtract( pos )
-                let length = Math.max( diff.length, 50 )
+                let length = Math.max( diff.length(), 50 )
                 diff = diff.scale( -50000000 / length ** 3 )
                 vel.x += timeStep * diff.x
                 vel.y += timeStep * diff.y

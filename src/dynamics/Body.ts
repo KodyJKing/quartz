@@ -1,3 +1,4 @@
+import ICollider from "../collision/ICollider"
 import { notQuiteInfiniteMass } from "../common"
 import Color, { Colors } from "../graphics/Color"
 import AABB from "../math/AABB"
@@ -6,43 +7,36 @@ import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
 
 export default class Body {
-    model: Vector[]
-    vertices: Vector[]
-    bounds: AABB
+    collider: ICollider
     position: Vector
     velocity: Vector
     angle: number
     angularVelocity: number
-    mass: number
-    invMass: number
-    inertia: number
-    invInertia: number
+    mass: number; invMass: number
+    inertia: number; invInertia: number
     isStatic: boolean
-    color: string
-    outlineColor: string
+    color: string; outlineColor: string
     id: number
     positionalCorrection: Vector
     static idCounter = 0
     constructor( args: {
-        model: Vector[],
+        collider: ICollider,
         position: Vector, velocity?: Vector,
         angle?: number, angularVelocity?: number
         mass?: number, inertia?: number,
         isStatic?: boolean,
         color?: string
     } ) {
-        this.model = args.model
         this.position = args.position
         this.velocity = args.velocity ?? new Vector( 0, 0 )
         this.angle = args.angle ?? 0
         this.angularVelocity = args.angularVelocity ?? 0
+        this.collider = args.collider; this.collider.body = this; this.collider.onUpdatePosition()
         this.isStatic = args.isStatic ?? false
         this.mass = this.isStatic ? notQuiteInfiniteMass : ( args.mass ?? 1 )
         this.invMass = 1 / this.mass
         this.inertia = this.isStatic ? notQuiteInfiniteMass : ( args.inertia ?? 1 )
         this.invInertia = 1 / this.inertia
-        this.vertices = this.transformedVertices()
-        this.bounds = AABB.polygonBounds( this.vertices )
         this.color = args.color ?? "grey"
         this.outlineColor = Color.parse( this.color ).lerp( Colors.black, .05 ).toString()
         this.id = Body.idCounter++
@@ -50,21 +44,7 @@ export default class Body {
     }
 
     getBounds() {
-        return this.bounds
-    }
-
-    transformedVertices() {
-        let { x, y } = this.position
-        let mat = Matrix.transformation( 0, 0, this.angle, 1, 1, x, y )
-        return this.model.map( v => mat.multiplyVec( v ) )
-    }
-
-    updateVertices() {
-        let { x, y } = this.position
-        let mat = Matrix.transformation( 0, 0, this.angle, 1, 1, x, y )
-        for ( let i = 0; i < this.model.length; i++ )
-            mat.multiplyVec( this.model[ i ], 1, this.vertices[ i ] )
-        this.bounds = AABB.polygonBounds( this.vertices )
+        return this.collider.bounds
     }
 
     healthCheck() {
@@ -106,7 +86,7 @@ export default class Body {
         // this.angle %= Math.PI
         // this.angle = threshold( this.angle, .001 )
 
-        this.updateVertices()
+        this.collider.onUpdatePosition()
         this.healthCheck()
     }
 }

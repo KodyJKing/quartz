@@ -158,7 +158,7 @@ function projectileVelocity() {
     const maxSpeed = 75
     const maxDraw = 250
     let velocity = dragPoint.subtract( input.cursor )
-    return velocity.unit_safe().scale( Math.min( velocity.length, maxDraw ) ).scale( maxSpeed / maxDraw )
+    return velocity.unit().scale( Math.min( velocity.length(), maxDraw ) ).scale( maxSpeed / maxDraw )
 }
 
 function updatePhysics() {

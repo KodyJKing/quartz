@@ -23,7 +23,7 @@ export default function solveVelocities(
                 let velB = bodyB.velocity.add( rb.crossZLeft( bodyB.angularVelocity ) )
                 let velBA = velB.subtract( velA )
 
-                let _restitution = velBA.getLengthSquared() < minBounceVelocity ** 2 ? 0 : restitution
+                let _restitution = velBA.lengthSquared() < minBounceVelocity ** 2 ? 0 : restitution
                 let combinedEffectiveMass = 1 / ( bodyA.invMass + bodyB.invMass + raCrossN ** 2 * bodyA.invInertia + rbCrossN ** 2 * bodyB.invInertia )
                 let normalImpulse = velBA.dot( normal ) * ( 1 + _restitution ) * combinedEffectiveMass
 

@@ -3,7 +3,11 @@ import { modulus } from "../math/math"
 import SupportFunctions, { SupportFunction } from "../math/SupportFunctions"
 import Vector from "../math/Vector"
 import Broadphase from "./Broadphase"
+import CircleCollider from "./CircleCollider"
+import ICollider from "./ICollider"
+import PolygonCollider from "./PolygonCollider"
 
+// Normal should always face away from bodyA
 export type CollisionInfo = { normal: Vector, separation: number, contact: Vector[] }
 export type Pair = { bodyA: Body, bodyB: Body, info: CollisionInfo }
 export type RaycastInfo = { time: number, normal: Vector }
@@ -13,7 +17,9 @@ export function getCollisionPairs( bodies: Body[], gridWidth: number, gridHeight
     Broadphase.findPairs(
         bodies, gridWidth, gridHeight, gridCellSize,
         ( bodyA, bodyB ) => {
-            let info = SAT( bodyA.vertices, bodyB.vertices )
+            let info = getCollisionInfo( bodyA.collider, bodyB.collider )
+            if ( !info )
+                return
             if ( info.separation <= 0 )
                 pairs.push( { bodyA, bodyB, info } )
         }
@@ -21,32 +27,78 @@ export function getCollisionPairs( bodies: Body[], gridWidth: number, gridHeight
     return pairs
 }
 
-export function SAT( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
-    let maxNormal = Vector.zero
-    let maxDist = -Infinity
-    function maxSeperationAxis( poly: Vector[], otherSupport: SupportFunction, sign: number ) {
+export function getCollisionInfo( a: ICollider, b: ICollider ) {
+    if ( a instanceof PolygonCollider && b instanceof PolygonCollider )
+        return polygonVsPolygon( a.vertices, b.vertices )
+    if ( a instanceof CircleCollider && b instanceof CircleCollider )
+        return circleVsCirlce( a, b )
+    if ( a instanceof PolygonCollider && b instanceof CircleCollider )
+        return polygonVsCircle( a, b, 1 )
+    if ( a instanceof CircleCollider && b instanceof PolygonCollider )
+        return polygonVsCircle( b, a, -1 )
+    return undefined
+}
+
+function circleVsCirlce( a: CircleCollider, b: CircleCollider ): CollisionInfo {
+    let aPos = a.body.position, bPos = b.body.position
+    let diff = bPos.subtract( aPos )
+    let separation = diff.length() - a.radius - b.radius
+    let normal = diff.unit()
+    let contact = [ aPos.add( normal.scale( a.radius + separation / 2 ) ) ]
+    return { normal, separation, contact }
+}
+
+export function polygonVsPolygon( polyA: Vector[], polyB: Vector[] ): CollisionInfo {
+    let supportA = SupportFunctions.polygon( polyA ), supportB = SupportFunctions.polygon( polyB )
+    let normal = Vector.zero
+    let separation = -Infinity
+    function checkPolygonAxes( poly: Vector[], otherSupport: SupportFunction, normalSign: number ) {
         for ( let i = 0; i < poly.length; i++ ) {
-            i = modulus( i, poly.length )
             let j = modulus( i + 1, poly.length )
             let pt_i = poly[ i ], pt_j = poly[ j ]
-            let normal = pt_j.subtract( pt_i ).leftNormal().unit() // Inward normal
-            let dist = pt_i.dot( normal ) - otherSupport( normal ).dot( normal )
-            if ( dist > maxDist )
-                maxDist = dist, maxNormal = normal.scale( sign )
+            let edgeNormal = pt_j.subtract( pt_i ).leftNormal().unit() // Normal toward "poly"
+            let distance = pt_i.dot( edgeNormal ) - otherSupport( edgeNormal ).dot( edgeNormal )
+            if ( distance > separation )
+                separation = distance, normal = edgeNormal.scale( normalSign )
         }
+        return { separation, normal }
     }
-
-    let supportA = SupportFunctions.polygon( polyA ), supportB = SupportFunctions.polygon( polyB )
-    maxSeperationAxis( polyA, supportB, -1 )
-    maxSeperationAxis( polyB, supportA, 1 )
-
-    let contacts = generateContacts( supportA, supportB, maxNormal )
-
+    checkPolygonAxes( polyA, supportB, -1 )
+    checkPolygonAxes( polyB, supportA, 1 )
+    let contacts = generateContacts( supportA, supportB, normal )
     return {
-        normal: maxNormal,
-        separation: maxDist,
+        normal,
+        separation,
         contact: contacts
     }
+}
+
+function polygonVsCircle( poly: PolygonCollider, circle: CircleCollider, normalSign: number ): CollisionInfo {
+    let circlePos = circle.body.position
+    let vertices = poly.vertices
+    let separation = -Infinity
+    let normal = Vector.zero
+    for ( let i = 0; i < vertices.length; i++ ) {
+        let j = modulus( i + 1, vertices.length )
+        let pt_i = vertices[ i ], pt_j = vertices[ j ]
+
+        let edgeNormal = pt_j.subtract( pt_i ).rightNormal().unit() // Normal away from "poly"
+        let distance = circle.support( edgeNormal.negate() ).dot( edgeNormal ) - pt_i.dot( edgeNormal )
+        if ( distance > separation )
+            separation = distance, normal = edgeNormal.scale( normalSign )
+
+        let vertexNormal = circlePos.subtract( pt_i ).unit() // Normal away from "poly"
+        distance = circle.support( vertexNormal.negate() ).dot( vertexNormal ) - poly.support( vertexNormal ).dot( vertexNormal )
+        if ( distance > separation )
+            separation = distance, normal = vertexNormal.scale( normalSign )
+    }
+    let contacts = generateContacts( poly.support.bind( poly ), circle.support.bind( circle ), normal )
+    return {
+        normal,
+        separation,
+        contact: contacts
+    }
+
 }
 
 export function generateContacts( supportA: SupportFunction, supportB: SupportFunction, normal: Vector, angularTolerance = 0.01 ) {
@@ -108,9 +160,6 @@ function raycastSupportFunction( support: SupportFunction, ray: Vector, maxItera
             let edgeDist = normal.dot( a )
             let approachSpeed = normal.dot( ray )
             let time = edgeDist / approachSpeed
-            // let hitPoint = Geometry.intersect( ray.rightNormal(), 0, abNormal, a.dot( abNormal ) )
-            // if ( !hitPoint ) return null // This should never happen.
-            // let time = hitPoint.dot( ray )
             return { time, normal }
         }
 
