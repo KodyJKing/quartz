@@ -197,9 +197,9 @@ function render() {
         }
 
         // let p = body.position
-        // Drawing.circle( p, 3 ).fill( offWhite )
+        // Drawing.vCircle( p, 3 ).fill( offWhite )
         // let h = Vector.polar( body.angle, 10 )
-        // Drawing.line( p, p.add( h ) ).stroke( offWhite )
+        // Drawing.vLine( p, p.add( h ) ).stroke( offWhite )
     }
 
     // for ( let pair of pairs ) {

@@ -81,18 +81,17 @@ function polygonVsCircle( poly: PolygonCollider, circle: CircleCollider, normalS
     for ( let i = 0; i < vertices.length; i++ ) {
         let j = modulus( i + 1, vertices.length )
         let pt_i = vertices[ i ], pt_j = vertices[ j ]
-
         let edgeNormal = pt_j.subtract( pt_i ).rightNormal().unit() // Normal away from "poly"
         let distance = circle.support( edgeNormal.negate() ).dot( edgeNormal ) - pt_i.dot( edgeNormal )
         if ( distance > separation )
             separation = distance, normal = edgeNormal.scale( normalSign )
-
         let vertexNormal = circlePos.subtract( pt_i ).unit() // Normal away from "poly"
         distance = circle.support( vertexNormal.negate() ).dot( vertexNormal ) - poly.support( vertexNormal ).dot( vertexNormal )
         if ( distance > separation )
             separation = distance, normal = vertexNormal.scale( normalSign )
     }
-    let contacts = generateContacts( poly.support.bind( poly ), circle.support.bind( circle ), normal )
+    let normalAwayFromCircle = normal.scale( -normalSign )
+    let contacts = [ circlePos.add( normalAwayFromCircle.scale( circle.radius + separation / 2 ) ) ]
     return {
         normal,
         separation,
