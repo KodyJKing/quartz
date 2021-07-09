@@ -236,7 +236,7 @@ function generateCollisions() {
         }
     }
 
-    Broadphase.findPairs( bodies, canvas.width, canvas.height, gridCellSize, ( bodyA, bodyB ) => {
+    Broadphase.findPairs( bodies, gridCellSize, ( bodyA, bodyB ) => {
         let penetration = () => bodyA.radius + bodyB.radius - bodyA.pos.distance( bodyB.pos )
         if ( penetration() < 0 ) return
         let normal = bodyB.pos.subtract( bodyA.pos ).unit()

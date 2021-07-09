@@ -39,7 +39,7 @@ const positionalSolverOptions = {
     allowedPenetration: 0
 }
 
-const broadphaseCellSize = 200
+const broadphaseCellSize = 100
 
 let toggleFlag = false
 window.addEventListener( "keypress", ev => {
@@ -175,7 +175,7 @@ function update() {
         }
     }
 
-    pairs = getCollisionPairs( bodies, canvas.width, canvas.height, broadphaseCellSize )
+    pairs = getCollisionPairs( bodies, broadphaseCellSize )
     solveVelocities( pairs, velocitySolverOptions )
     solvePositions( pairs, positionalSolverOptions )
 }

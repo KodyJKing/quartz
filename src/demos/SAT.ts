@@ -1,5 +1,5 @@
 import Clock from "../Clock"
-import { getCollisionPairs, polygonVsPolygon } from "../collision/Collision"
+import { polygonVsPolygon } from "../collision/Collision"
 import { boxPolygon, initCanvas, polygon } from "../common"
 import Input from "../Input"
 import Matrix from "../math/Matrix"

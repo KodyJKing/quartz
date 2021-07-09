@@ -167,7 +167,7 @@ function updatePhysics() {
     for ( let body of bodies )
         body.updateVelocity( timeStep, gravity, rotationalAirDrag, linearAirDrag )
 
-    pairs = getCollisionPairs( bodies, canvas.width, canvas.height, broadphaseCellSize )
+    pairs = getCollisionPairs( bodies, broadphaseCellSize )
     solveVelocities( pairs, velocitySolverOptions )
     solvePositions( pairs, positionalSolverOptions )
 

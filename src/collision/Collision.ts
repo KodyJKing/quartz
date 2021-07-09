@@ -12,10 +12,10 @@ export type CollisionInfo = { normal: Vector, separation: number, contact: Vecto
 export type Pair = { bodyA: Body, bodyB: Body, info: CollisionInfo }
 export type RaycastInfo = { time: number, normal: Vector }
 
-export function getCollisionPairs( bodies: Body[], gridWidth: number, gridHeight: number, gridCellSize: number ) {
+export function getCollisionPairs( bodies: Body[], gridCellSize: number ) {
     let pairs: Pair[] = []
     Broadphase.findPairs(
-        bodies, gridWidth, gridHeight, gridCellSize,
+        bodies, gridCellSize,
         ( bodyA, bodyB ) => {
             let info = getCollisionInfo( bodyA.collider, bodyB.collider )
             if ( !info )
