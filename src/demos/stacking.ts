@@ -25,7 +25,7 @@ const engine = new Engine( {
         iterations: 20,
         minBounceVelocity: 0,
         restitution: .1,
-        coefficientOfFriction: .2
+        coefficientOfFriction: .0
     },
     positionalSolverOptions: {
         iterations: 10,
@@ -38,8 +38,8 @@ const engine = new Engine( {
 } )
 
 let dragPoint: Vector | undefined = undefined
-
 let isPaused = false
+
 window.addEventListener( "keydown", ev => {
     if ( ev.key == " " ) {
         isPaused = !isPaused
@@ -60,24 +60,24 @@ function setupBodies() {
         isStatic: true,
         color: ColorTheme.foreground
     } ) )
-    // engine.bodies.push( new Body( {
-    //     collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
-    //     position: new Vector( canvas.width / 2, 0 ),
-    //     isStatic: true,
-    //     color: ColorTheme.offWhiteDarkened
-    // } ) )
-    // engine.bodies.push( new Body( {
-    //     collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
-    //     position: new Vector( canvas.width, canvas.height / 2 ),
-    //     isStatic: true,
-    //     color: ColorTheme.offWhiteDarkened
-    // } ) )
-    // engine.bodies.push( new Body( {
-    //     collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
-    //     position: new Vector( 0, canvas.height / 2 ),
-    //     isStatic: true,
-    //     color: ColorTheme.offWhiteDarkened
-    // } ) )
+    engine.bodies.push( new Body( {
+        collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
+        position: new Vector( canvas.width / 2, 0 ),
+        isStatic: true,
+        color: ColorTheme.foreground
+    } ) )
+    engine.bodies.push( new Body( {
+        collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
+        position: new Vector( canvas.width, canvas.height / 2 ),
+        isStatic: true,
+        color: ColorTheme.foreground
+    } ) )
+    engine.bodies.push( new Body( {
+        collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
+        position: new Vector( 0, canvas.height / 2 ),
+        isStatic: true,
+        color: ColorTheme.foreground
+    } ) )
 
     addStack()
     function addStack() {
