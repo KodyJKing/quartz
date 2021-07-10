@@ -5,11 +5,12 @@
 */
 import Clock from "../Clock"
 import Broadphase from "../collision/Broadphase"
-import { initCanvas, notQuiteInfiniteMass } from "../common"
+import { initCanvas, notQuiteInfinite } from "../common"
 import Input from "../Input"
 import AABB from "../math/AABB"
 import { clamp } from "../math/math"
 import Vector from "../math/Vector"
+import { ColorTheme, randomThemeColor } from "./ColorTheme"
 
 class Body {
     pos: Vector
@@ -53,9 +54,6 @@ const updatesPerFrame = 1
 const offscreenMargin = 60
 const gridCellSize = 20
 
-const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
-const staticCircleColor = "#d1ccb6"
-
 for ( let i = 0; i < 1500; i++ ) {
     let pos = new Vector(
         Math.random() * canvas.width,
@@ -67,38 +65,38 @@ for ( let i = 0; i < 1500; i++ ) {
     )
     // let radius = 12.5
     let radius = ( Math.random() * 10 + 20 ) * .5
-    let color = colorPalette[ Math.random() * colorPalette.length | 0 ]
+    let color = randomThemeColor()
     let body = new Body( { pos, radius, vel, color } )
     bodies.push( body )
 }
 bodies.push( new Body( {
     pos: new Vector( canvas.width / 2, canvas.height / 4 ),
     radius: 100,
-    color: staticCircleColor,
+    color: ColorTheme.foreground,
     isStatic: true
 } ) )
 bodies.push( new Body( {
     pos: new Vector( canvas.width / 2 + 200, canvas.height / 2 ),
     radius: 100,
-    color: staticCircleColor,
+    color: ColorTheme.foreground,
     isStatic: true
 } ) )
 bodies.push( new Body( {
     pos: new Vector( canvas.width / 2 - 200, canvas.height / 2 ),
     radius: 100,
-    color: staticCircleColor,
+    color: ColorTheme.foreground,
     isStatic: true
 } ) )
 bodies.push( new Body( {
     pos: new Vector( canvas.width, canvas.height ),
     radius: 100,
-    color: staticCircleColor,
+    color: ColorTheme.foreground,
     isStatic: true
 } ) )
 bodies.push( new Body( {
     pos: new Vector( 0, canvas.height ),
     radius: 100,
-    color: staticCircleColor,
+    color: ColorTheme.foreground,
     isStatic: true
 } ) )
 
@@ -112,7 +110,7 @@ function mainLoop() {
 }
 
 function render() {
-    c.fillStyle = "#ebe6d1"
+    c.fillStyle = ColorTheme.background
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     for ( let body of bodies ) {
@@ -166,8 +164,8 @@ function solvePositions( pairs: Collision[] ) {
         let _penetration = penetration()
         if ( _penetration < 0 ) continue
 
-        let massA = bodyA?.mass ?? notQuiteInfiniteMass
-        let massB = bodyB?.mass ?? notQuiteInfiniteMass
+        let massA = bodyA?.mass ?? notQuiteInfinite
+        let massB = bodyB?.mass ?? notQuiteInfinite
 
         let displacement = _penetration * positionalDamping
         let massRatio = massB / massA
@@ -193,8 +191,8 @@ function solveVelocities( pairs: Collision[] ) {
         let _penetration = penetration()
         if ( _penetration < 0 ) continue
 
-        let massA = bodyA?.mass ?? notQuiteInfiniteMass
-        let massB = bodyB?.mass ?? notQuiteInfiniteMass
+        let massA = bodyA?.mass ?? notQuiteInfinite
+        let massB = bodyB?.mass ?? notQuiteInfinite
         let velA = bodyA.vel ?? new Vector( 0, 0 )
         let velB = bodyB?.vel ?? new Vector( 0, 0 )
 

@@ -6,13 +6,12 @@ import Vector from "../math/Vector"
 import Drawing from "../graphics/Drawing"
 import { shapecast } from "../collision/Collision"
 import SupportFunctions, { SupportFunction } from "../math/SupportFunctions"
+import { ColorTheme } from "./ColorTheme"
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
 let input = new Input()
 let clock = new Clock()
-
-const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
 
 let paused = false
 let angle = 0
@@ -41,7 +40,7 @@ function render() {
     c.lineWidth = 2
     c.lineCap = "round"
 
-    c.fillStyle = "#ebe6d1"
+    c.fillStyle = ColorTheme.background
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     const timeScale = .25
@@ -69,8 +68,8 @@ function render() {
     let supportA = transform( round( poly( polyA ), 20 ), matA )
     let supportB = transform( round( poly( polyB ), 20 ), matB )
 
-    Drawing.polygon( sampleSupport( 100, supportA ) ).fill( colorPalette[ 2 ] )
-    Drawing.polygon( sampleSupport( 100, supportB ) ).fill( colorPalette[ 3 ] )
+    Drawing.polygon( sampleSupport( 100, supportA ) ).fill( ColorTheme.accents.accent2 )
+    Drawing.polygon( sampleSupport( 100, supportB ) ).fill( ColorTheme.accents.accent3Dark )
 
     let result = shapecast( supportA, velA, supportB, velB )
     if ( result ) {
@@ -79,13 +78,13 @@ function render() {
         let supportB2 = translate( supportB, velB.scale( time ) )
         let contacts = generateContacts( supportA2, supportB2, normal )
         c.globalAlpha = .5
-        Drawing.polygon( sampleSupport( 100, supportA2 ) ).fill( colorPalette[ 2 ] )
-        Drawing.polygon( sampleSupport( 100, supportB2 ) ).fill( colorPalette[ 3 ] )
+        Drawing.polygon( sampleSupport( 100, supportA2 ) ).fill( ColorTheme.accents.accent2 )
+        Drawing.polygon( sampleSupport( 100, supportB2 ) ).fill( ColorTheme.accents.accent3Dark )
         c.globalAlpha = 1
         for ( let p of contacts ) {
             let n = normal.scale( 5 )
-            Drawing.vCircle( p, 2 ).fill( colorPalette[ 1 ] )
-            Drawing.vLine( p.add( n ), p.subtract( n ) ).stroke( colorPalette[ 1 ] )
+            Drawing.vCircle( p, 2 ).fill( ColorTheme.accents.accent1Light )
+            Drawing.vLine( p.add( n ), p.subtract( n ) ).stroke( ColorTheme.accents.accent1Light )
         }
     }
 

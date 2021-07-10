@@ -1,5 +1,5 @@
 import ICollider from "../collision/ICollider"
-import { notQuiteInfiniteMass } from "../common"
+import { notQuiteInfinite } from "../common"
 import Color, { Colors } from "../graphics/Color"
 import AABB from "../math/AABB"
 import { threshold } from "../math/math"
@@ -33,9 +33,9 @@ export default class Body {
         this.angularVelocity = args.angularVelocity ?? 0
         this.collider = args.collider; this.collider.body = this; this.collider.onUpdatePosition()
         this.isStatic = args.isStatic ?? false
-        this.mass = this.isStatic ? notQuiteInfiniteMass : ( args.mass ?? 1 )
+        this.mass = this.isStatic ? notQuiteInfinite : ( args.mass ?? 1 )
         this.invMass = 1 / this.mass
-        this.inertia = this.isStatic ? notQuiteInfiniteMass : ( args.inertia ?? 1 )
+        this.inertia = this.isStatic ? notQuiteInfinite : ( args.inertia ?? 1 )
         this.invInertia = 1 / this.inertia
         this.color = args.color ?? "grey"
         this.outlineColor = Color.parse( this.color ).lerp( Colors.black, .05 ).toString()

@@ -7,16 +7,12 @@ import Drawing from "../graphics/Drawing"
 import PolygonCollider from "../collision/PolygonCollider"
 import CircleCollider from "../collision/CircleCollider"
 import Engine from "../Engine"
+import { ColorTheme, randomThemeColor } from "./ColorTheme"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
 const input = new Input()
 const clock = new Clock()
-
-const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
-const offWhite = "#ebe6d1"
-const offWhiteDarker = "#d1ccb6"
-const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
 const stepsPerFrame = 4
 const timeStep = 1 / stepsPerFrame
@@ -62,25 +58,25 @@ function setupBodies() {
         collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
         position: new Vector( canvas.width / 2, canvas.height ),
         isStatic: true,
-        color: offWhiteDarker
+        color: ColorTheme.foreground
     } ) )
     // engine.bodies.push( new Body( {
     //     collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
     //     position: new Vector( canvas.width / 2, 0 ),
     //     isStatic: true,
-    //     color: offWhiteDarker
+    //     color: ColorTheme.offWhiteDarkened
     // } ) )
     // engine.bodies.push( new Body( {
     //     collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
     //     position: new Vector( canvas.width, canvas.height / 2 ),
     //     isStatic: true,
-    //     color: offWhiteDarker
+    //     color: ColorTheme.offWhiteDarkened
     // } ) )
     // engine.bodies.push( new Body( {
     //     collider: new PolygonCollider( boxPolygon( wallThickness, canvas.height ) ),
     //     position: new Vector( 0, canvas.height / 2 ),
     //     isStatic: true,
-    //     color: offWhiteDarker
+    //     color: ColorTheme.offWhiteDarkened
     // } ) )
 
     addStack()
@@ -109,7 +105,7 @@ function setupBodies() {
                         canvas.height - wallThickness / 2 - boxHeight / 2 - i * boxHeight
                     ),
                     mass, inertia,
-                    color: randomColor()
+                    color: randomThemeColor()
                 } ) )
             }
         }
@@ -130,7 +126,7 @@ function mainLoop() {
 
 function render() {
     Drawing.context = c
-    c.fillStyle = offWhite
+    c.fillStyle = ColorTheme.background
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     engine.renderToCanvas( c, { drawOutlines: true } )

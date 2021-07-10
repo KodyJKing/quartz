@@ -1,7 +1,7 @@
 import { SupportFunction } from "./math/SupportFunctions"
 import Vector from "./math/Vector"
 
-export const notQuiteInfiniteMass = 1e+32
+export const notQuiteInfinite = 1e+32
 
 export function sampleSupport( n, support: SupportFunction ) {
     let result: Vector[] = []

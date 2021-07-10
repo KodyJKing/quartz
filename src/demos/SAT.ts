@@ -5,13 +5,12 @@ import Input from "../Input"
 import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
 import Drawing from "../graphics/Drawing"
+import { ColorTheme } from "./ColorTheme"
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
 let input = new Input()
 let clock = new Clock()
-
-const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
 
 let paused = false
 window.addEventListener( "keypress", ev => { if ( ev.key == " " ) paused = !paused } )
@@ -32,7 +31,7 @@ function render() {
     c.lineWidth = 2
     c.lineCap = "round"
 
-    c.fillStyle = "#ebe6d1"
+    c.fillStyle = ColorTheme.background
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     let t = performance.now() / 1000
@@ -56,14 +55,14 @@ function render() {
 
     if ( isTouching )
         c.globalAlpha = .5
-    Drawing.polygon( polyA ).fill( colorPalette[ 3 ] )
-    Drawing.polygon( polyB ).fill( colorPalette[ 4 ] )
+    Drawing.polygon( polyA ).fill( ColorTheme.accents.accent3Light )
+    Drawing.polygon( polyB ).fill( ColorTheme.accents.accent3Dark )
     c.globalAlpha = 1
 
     if ( isTouching ) {
         for ( let v of contactInfo.contact ) {
-            Drawing.vCircle( v, 4 ).fill( colorPalette[ 1 ] )
-            Drawing.vLine( v, v.add( contactInfo.normal.scale( 10 ) ) ).stroke( colorPalette[ 1 ] )
+            Drawing.vCircle( v, 4 ).fill( ColorTheme.accents.accent1Light )
+            Drawing.vLine( v, v.add( contactInfo.normal.scale( 10 ) ) ).stroke( ColorTheme.accents.accent1Light )
         }
     }
 

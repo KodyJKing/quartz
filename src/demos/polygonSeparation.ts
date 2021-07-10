@@ -5,13 +5,12 @@ import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
 import Drawing from "../graphics/Drawing"
 import SupportFunctions from "../math/SupportFunctions"
+import { ColorTheme } from "./ColorTheme"
 
 let canvas = initCanvas()
 let c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
 let input = new Input()
 let clock = new Clock()
-
-const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
 
 let paused = false
 window.addEventListener( "keypress", ev => { if ( ev.key == " " ) paused = !paused } )
@@ -29,7 +28,7 @@ function mainLoop() {
 function render() {
     Drawing.context = c
 
-    c.fillStyle = "#ebe6d1"
+    c.fillStyle = ColorTheme.background
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     let orbitCenter = new Vector( canvas.width / 4, canvas.height / 2 )
@@ -50,8 +49,8 @@ function render() {
     let matB = Matrix.vTranslation( orbitCenter )
     let polyB = polygon( 5, 100 ).map( v => matB.multiplyVec( v ) )
 
-    Drawing.polygon( polyA ).fill( colorPalette[ 3 ] )
-    Drawing.polygon( polyB ).fill( colorPalette[ 4 ] )
+    Drawing.polygon( polyA ).fill( ColorTheme.accents.accent3Light )
+    Drawing.polygon( polyB ).fill( ColorTheme.accents.accent3Dark )
 
     drawGraph( polyB, polyA )
 
@@ -86,7 +85,7 @@ function drawGraph( polyA: Vector[], polyB: Vector[] ) {
     c.scale( 1, -1 )
 
     c.lineWidth = 2
-    c.strokeStyle = "#d1ccb6"
+    c.strokeStyle = ColorTheme.foreground
     Drawing.line( 0, 0, graphWidth, 0 ).stroke()
     Drawing.line( graphWidth, -100, graphWidth, 100 ).stroke()
     Drawing.line( 0, -100, 0, 100 ).stroke()

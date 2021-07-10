@@ -1,5 +1,5 @@
 import Clock from "../Clock"
-import { boxPolygon, doCameraControl, initCanvas, notQuiteInfiniteMass, polygon } from "../common"
+import { boxPolygon, initCanvas, polygon } from "../common"
 import Body from "../dynamics/Body"
 import Input from "../Input"
 import Vector from "../math/Vector"
@@ -9,16 +9,12 @@ import CircleCollider from "../collision/CircleCollider"
 import ICollider from "../collision/ICollider"
 import Engine from "../Engine"
 import Camera from "../graphics/Camera"
+import { ColorTheme, randomThemeColor } from "./ColorTheme"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
 const input = new Input()
 const clock = new Clock()
-
-const colorPalette = [ "#264653", "#2A9D8F", "#E9C46A", "#F4A261", "#E76F51" ]
-const offWhite = "#ebe6d1"
-const offWhiteDarker = "#d1ccb6"
-const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
 const wallThickness = 80
 const worldWidth = canvas.width
@@ -61,38 +57,38 @@ function setupBodies() {
             collider: new PolygonCollider( boxPolygon( worldWidth, wallThickness ) ),
             position: new Vector( worldWidth / 2, worldHeight ),
             isStatic: true,
-            color: offWhiteDarker
+            color: ColorTheme.foreground
         } ),
 
         new Body( {
             collider: new CircleCollider( 100 ),
             position: new Vector( worldWidth / 2, worldHeight / 4 ),
             isStatic: true,
-            color: offWhiteDarker
+            color: ColorTheme.foreground
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
             position: new Vector( worldWidth / 2 - 200, worldHeight / 2 ),
             isStatic: true,
-            color: offWhiteDarker
+            color: ColorTheme.foreground
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
             position: new Vector( worldWidth / 2 + 200, worldHeight / 2 ),
             isStatic: true,
-            color: offWhiteDarker
+            color: ColorTheme.foreground
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
             position: new Vector( 0, worldHeight ),
             isStatic: true,
-            color: offWhiteDarker
+            color: ColorTheme.foreground
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
             position: new Vector( worldWidth, worldHeight ),
             isStatic: true,
-            color: offWhiteDarker
+            color: ColorTheme.foreground
         } )
     ]
 
@@ -111,12 +107,11 @@ function setupBodies() {
             collider = new PolygonCollider( polygon( Math.floor( Math.random() * 6 ) + 3, radius ) )
         engine.bodies.push( new Body( {
             collider,
-            // model: polygon( 5, radius ),
             position: new Vector( Math.random() * worldWidth, Math.random() * worldHeight ),
             angularVelocity: ( Math.random() - .5 ),
             velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 20 ),
             mass, inertia,
-            color: randomColor()
+            color: randomThemeColor()
         } ) )
     }
 }
@@ -169,7 +164,7 @@ function update() {
 
 function render() {
     Drawing.context = c
-    c.fillStyle = offWhite
+    c.fillStyle = ColorTheme.background
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
     Drawing.save()
