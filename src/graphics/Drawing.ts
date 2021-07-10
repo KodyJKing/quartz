@@ -1,4 +1,5 @@
 import { modulus } from "../math/math"
+import Matrix from "../math/Matrix"
 import Vector from "../math/Vector"
 
 export default class Drawing {
@@ -21,6 +22,11 @@ export default class Drawing {
     }
     static restore() {
         Drawing.context.restore()
+        return Drawing
+    }
+    static mTransform( mat: Matrix ) {
+        let { m11, m12, m13, m21, m22, m23 } = mat
+        Drawing.context.transform( m11, m21, m12, m22, m13, m23 )
         return Drawing
     }
     static vTranslate( v: Vector ) {

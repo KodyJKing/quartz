@@ -1,5 +1,5 @@
 import Clock from "../Clock"
-import { boxPolygon, initCanvas, notQuiteInfiniteMass, polygon } from "../common"
+import { boxPolygon, doCameraControl, initCanvas, notQuiteInfiniteMass, polygon } from "../common"
 import Body from "../dynamics/Body"
 import Input from "../Input"
 import Vector from "../math/Vector"
@@ -8,6 +8,7 @@ import PolygonCollider from "../collision/PolygonCollider"
 import CircleCollider from "../collision/CircleCollider"
 import ICollider from "../collision/ICollider"
 import Engine from "../Engine"
+import Camera from "../graphics/Camera"
 
 const canvas = initCanvas()
 const c = canvas.getContext( "2d" ) as CanvasRenderingContext2D
@@ -19,8 +20,15 @@ const offWhite = "#ebe6d1"
 const offWhiteDarker = "#d1ccb6"
 const randomColor = () => colorPalette[ Math.random() * colorPalette.length | 0 ]
 
-const timeStep = 1
 const wallThickness = 80
+const worldWidth = canvas.width
+const worldHeight = canvas.height
+const camera = new Camera()
+let dontRender = false
+camera.position = new Vector( worldWidth / 2, worldHeight / 2 )
+
+
+const timeStep = 1
 const engine = new Engine( {
     timeStep: 1,
     gravity: 0.07,
@@ -42,7 +50,6 @@ const engine = new Engine( {
     broadphaseCellSize: 100
 } )
 
-let dontRender = false
 window.addEventListener( "keypress", ev => {
     if ( ev.key == " " ) dontRender = !dontRender
 } )
@@ -51,39 +58,39 @@ setupBodies()
 function setupBodies() {
     const staticBodies = [
         new Body( {
-            collider: new PolygonCollider( boxPolygon( canvas.width, wallThickness ) ),
-            position: new Vector( canvas.width / 2, canvas.height ),
+            collider: new PolygonCollider( boxPolygon( worldWidth, wallThickness ) ),
+            position: new Vector( worldWidth / 2, worldHeight ),
             isStatic: true,
             color: offWhiteDarker
         } ),
 
         new Body( {
             collider: new CircleCollider( 100 ),
-            position: new Vector( canvas.width / 2, canvas.height / 4 ),
+            position: new Vector( worldWidth / 2, worldHeight / 4 ),
             isStatic: true,
             color: offWhiteDarker
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
-            position: new Vector( canvas.width / 2 - 200, canvas.height / 2 ),
+            position: new Vector( worldWidth / 2 - 200, worldHeight / 2 ),
             isStatic: true,
             color: offWhiteDarker
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
-            position: new Vector( canvas.width / 2 + 200, canvas.height / 2 ),
+            position: new Vector( worldWidth / 2 + 200, worldHeight / 2 ),
             isStatic: true,
             color: offWhiteDarker
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
-            position: new Vector( 0, canvas.height ),
+            position: new Vector( 0, worldHeight ),
             isStatic: true,
             color: offWhiteDarker
         } ),
         new Body( {
             collider: new CircleCollider( 100 ),
-            position: new Vector( canvas.width, canvas.height ),
+            position: new Vector( worldWidth, worldHeight ),
             isStatic: true,
             color: offWhiteDarker
         } )
@@ -105,7 +112,7 @@ function setupBodies() {
         engine.bodies.push( new Body( {
             collider,
             // model: polygon( 5, radius ),
-            position: new Vector( Math.random() * canvas.width, Math.random() * canvas.height ),
+            position: new Vector( Math.random() * worldWidth, Math.random() * worldHeight ),
             angularVelocity: ( Math.random() - .5 ),
             velocity: Vector.polar( Math.random() * Math.PI * 2, Math.random() * 20 ),
             mass, inertia,
@@ -123,6 +130,8 @@ function mainLoop() {
 }
 
 function update() {
+    camera.updateFromInput( input )
+
     for ( let body of engine.bodies ) {
         if ( body.isStatic )
             continue
@@ -133,8 +142,9 @@ function update() {
 
         // Repel when left-clicking.
         if ( input.mouse.get( 0 ) ) {
+            let mousePos = camera.worldPosition( canvas.width, canvas.height, input.cursor )
             let power = -10000
-            let diff = input.cursor.subtract( body.position )
+            let diff = mousePos.subtract( body.position )
             let length = Math.max( diff.length(), 50 )
             diff = diff.scale( power / length ** 3 )
             body.velocity.x += diff.x * timeStep
@@ -143,7 +153,7 @@ function update() {
 
         // Reset bodies which are out of bounds.
         let x = body.position.x
-        let width = canvas.width
+        let width = worldWidth
         let marigin = 80
         if ( x < -marigin || x > width + marigin ) {
             body.position.y = -200
@@ -153,17 +163,20 @@ function update() {
             body.collider.onUpdatePosition()
         }
     }
+
     engine.fixedUpdate()
 }
 
 function render() {
     Drawing.context = c
-
     c.fillStyle = offWhite
     c.fillRect( 0, 0, canvas.width, canvas.height )
 
+    Drawing.save()
+    Drawing.mTransform( camera.worldToCamera( canvas.width, canvas.height ) )
     if ( !dontRender )
         engine.renderToCanvas( c )
+    Drawing.restore()
 
     c.fillStyle = "red"; c.font = "24px Impact"
     c.fillText( "FPS: " + clock.averageFPS.toFixed( 2 ), 2, 22 )

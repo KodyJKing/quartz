@@ -1,4 +1,3 @@
-import { modulus } from "./math/math"
 import { SupportFunction } from "./math/SupportFunctions"
 import Vector from "./math/Vector"
 
