@@ -30,9 +30,9 @@ export default function solveVelocities(
                 if ( normalImpulse >= 0 )
                     continue
 
+                // TODO: Rework friction. Follow this: https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-friction-scene-and-jump-table--gamedev-7756
                 let tangent = normal.leftNormal()
                 let tangentImpulse = normalImpulse * coefficientOfFriction * -Math.sign( velBA.dot( tangent ) )
-
                 let impulse = new Vector(
                     normal.x * normalImpulse + tangent.x * tangentImpulse,
                     normal.y * normalImpulse + tangent.y * tangentImpulse
