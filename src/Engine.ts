@@ -17,7 +17,8 @@ type EngineOptions = {
     velocitySolverOptions: {
         iterations: number
         minBounceVelocity: number
-        coefficientOfFriction: number
+        friction: number
+        staticFriction: number
         restitution: number
     }
     positionalSolverOptions: {

@@ -32,7 +32,8 @@ const engine = new Engine( {
         iterations: 30,
         minBounceVelocity: 0,
         restitution: .3,
-        coefficientOfFriction: .0
+        friction: .0,
+        staticFriction: .0
     },
     positionalSolverOptions: {
         iterations: 7,

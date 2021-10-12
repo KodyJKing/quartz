@@ -2,9 +2,12 @@ import { Pair } from "../collision/Collision"
 import Vector from "../math/Vector"
 
 export default function solveVelocities(
-    pairs: Pair[], options: { iterations: number, minBounceVelocity: number, restitution: number, coefficientOfFriction: number }
+    pairs: Pair[], options: { 
+        iterations: number, minBounceVelocity: number, restitution: number,
+        friction: number, staticFriction: number
+    }
 ) {
-    let { iterations, minBounceVelocity, restitution, coefficientOfFriction } = options
+    let { iterations, minBounceVelocity, restitution, friction, staticFriction } = options
     for ( let i = 0; i < iterations; i++ ) {
         for ( let j = 0; j < pairs.length; j++ ) {
             let pair = pairs[ j ]
@@ -31,7 +34,15 @@ export default function solveVelocities(
                     continue
 
                 let tangent = normal.leftNormal()
-                let tangentImpulse = normalImpulse * coefficientOfFriction * -Math.sign( velBA.dot( tangent ) )
+                // let tangentImpulse = normalImpulse * friction * -Math.sign( velBA.dot( tangent ) )
+                let raCrossI = ra.cross( tangent )
+                let rbCrossI = rb.cross( tangent )
+                let combinedEffectiveMassI = 1 / ( bodyA.invMass + bodyB.invMass + raCrossI ** 2 * bodyA.invInertia + rbCrossI ** 2 * bodyB.invInertia )
+                // let tangentImpulse = -velBA.dot( tangent ) * (1 + _restitution) * combinedEffectiveMassI
+                let tangentImpulse = -velBA.dot( tangent ) * combinedEffectiveMassI
+                if (Math.abs(tangentImpulse) > Math.abs(normalImpulse * staticFriction)) {
+                    tangentImpulse = normalImpulse * friction * -Math.sign( velBA.dot( tangent ) )
+                }
 
                 let impulse = new Vector(
                     normal.x * normalImpulse + tangent.x * tangentImpulse,
